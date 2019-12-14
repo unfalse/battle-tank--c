@@ -1,0 +1,6 @@
+*.out
+*.c~
+*.o
+*.h~
+tests
+eitpro4
