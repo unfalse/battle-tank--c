@@ -1,19 +1,19 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include <stdbool.h>
 #include "includes.h"
 
 void graphics_Rectangle(int, int, int, int, SDL_Color);
+void graphics_FillCell(int, int, SDL_Color);
 void graphics_Line(int, int, int, int, SDL_Color);
 bool graphics_LoadMedia();
-void graphics_RenderTextureAdvanced(int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip);
-void graphics_RenderTexture(int x, int y);
-bool graphics_LoadFromRenderedText( char* textureText, SDL_Color textColor );
+void graphics_RenderTextureAdvanced(int, int, SDL_Rect*, double, SDL_Point*, SDL_RendererFlip);
+void graphics_RenderTexture(int, int);
+bool graphics_LoadFromRenderedText(char*, SDL_Color);
 void graphics_TextFree();
 void graphics_OutTextXY(int, int, char*, SDL_Color);
-void graphics_PutPixel(int x, int y, SDL_Color color);
-void graphics_PutPixels(SDL_Point* points, SDL_Color color, int count);
+void graphics_PutPixel(int, int, SDL_Color);
+void graphics_PutPixels(SDL_Point*, SDL_Color, int);
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -190,26 +190,19 @@ void graphics_TextFree()
 }
 
 void graphics_GameLoop(void (*game_loop)()) {
-    //Main loop flag
-    bool quit = false;
+    SDL_SetRenderDrawColor(graphics.gRenderer, 0, 0, 0, 0);
+    SDL_RenderClear(graphics.gRenderer);
+    game_loop();
+    SDL_RenderPresent(graphics.gRenderer);
+}
 
-    //Event handler
-    SDL_Event e;
-    while( !quit ) {
-        // Handle events on queue
-        while( SDL_PollEvent( &e ) != 0 ) {
-            // User requests quit
-            if( e.type == SDL_QUIT ) {
-                quit = true;
-			}
-		}
-        SDL_SetRenderDrawColor(graphics.gRenderer, 0, 0, 0, 0);
-        SDL_RenderClear(graphics.gRenderer);
-        game_loop();
-        SDL_RenderPresent(graphics.gRenderer);
-        // FOR DEBUGGING !
-        //quit = true;
-    }
+void graphics_RenderStart() {
+    SDL_SetRenderDrawColor(graphics.gRenderer, 0, 0, 0, 0);
+    SDL_RenderClear(graphics.gRenderer);
+}
+
+void graphics_RenderEnd() {
+    SDL_RenderPresent(graphics.gRenderer);
 }
 
 void graphics_ShowXY() {
@@ -234,21 +227,15 @@ end;
 */
 }
 
-void graphics_FillCell() { // {GFillCell}
-//    setfillstyle(solidfill, colorpnt);
-//    bar(getrx*10+begx+1, getry*10+begy+1, getrx*10+begx+9, getry*10+begy+9);
-}
 
-void graphics_DrawData() {// {GDrawData}
-/*
-		for rx:=0 to maxx-1 do
-			for ry:=0 to maxy-1 do begin
-				x:=rx; y:=ry;
-				colorpnt:=display[x,y];
-				fillcell;
-			end;
-		x:=maxx div 2; y:=maxy div 2;
-*/
+
+void graphics_DrawData(SDL_Color *display) {// {GDrawData}
+    int rx=0, ry=0;
+    for (rx=0; rx<MAXX; rx++) {
+        for (ry=0; ry<MAXY; ry++) {
+            graphics_FillCell(rx, ry, *((display + rx * MAXY) + ry));
+        }
+    }
 }
 
 void graphics_Field() { //{GField}
@@ -346,6 +333,14 @@ void graphics_Rectangle(int x, int y, int w, int h, SDL_Color color) {
     SDL_RenderDrawRect(graphics.gRenderer, &outlineRect);
 }
 
+void graphics_FillCell(int x, int y, SDL_Color color) { // {GFillCell}
+    SDL_Rect bar = { x * 10 + BEGX + 1, y * 10 + BEGY + 1, 8, 8 };
+    SDL_SetRenderDrawColor(graphics.gRenderer, color.r, color.g, color.b, color.a);
+    SDL_RenderFillRect(graphics.gRenderer, &bar);
+//    setfillstyle(solidfill, colorpnt);
+//    bar(getrx*10+begx+1, getry*10+begy+1, getrx*10+begx+9, getry*10+begy+9);
+}
+
 void graphics_PutPixel(int x, int y, SDL_Color color) {
     SDL_SetRenderDrawColor(graphics.gRenderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawPoint(graphics.gRenderer, x, y);
@@ -355,6 +350,14 @@ void graphics_PutPixels(SDL_Point* points, SDL_Color color, int count) {
     // printf("%d", points[0].x);
     SDL_SetRenderDrawColor(graphics.gRenderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawPoints(graphics.gRenderer, points, count);
+}
+
+void graphics_DrawAsReal(SDL_Color *display) { // {GDrawAsReal}
+    for (int rx = 0; rx < MAXX; rx++) {
+		for (int ry = 0; ry < MAXY; ry++){
+			graphics_PutPixel(rx + 400, ry + 5, *((display + rx * MAXY) + ry));
+        }
+    }
 }
 
 void graphics_ClearAim(int x1, int y1){
@@ -430,15 +433,7 @@ Begin
 	px:=x; py:=y; x:=40; y:=20; fillcell; x:=px; y:=py;
 End;
 
-Procedure Graphics.DrawAsReal;{GDrawAsReal}
-var	color: byte;
-	Begin
-		for rx:=0 to maxx-1 do
-			for ry:=0 to maxy-1 do begin
-				color:=display[rx,ry];
-				putpixel(rx+400, ry+5, color);
-			end;
-	End;
+
 
 Procedure Graphics.EraseImg;{GEraseImg}
 var	px,py:integer;

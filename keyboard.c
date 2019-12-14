@@ -1,32 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include <SDL/SDL.h>
-#include "h.h"
+#include <SDL2/SDL.h>
+#include "includes.h"
 
-struct callbacks {
-    void (*left_key)();
-    void (*right_key)();
-    void (*up_key)();
-    void (*down_key)();
-    void (*pgup_key)();
-    void (*pgdn_key)();
-    void (*space_key)();
-    void (*r_key)();
-    void (*f_key)();
-    void (*esc_key)();
-    void (*f3_key)();
-    void (*f2_key)();
-    void (*f4_key)();
-    void (*f5_key)();
-    void (*f6_key)();
-}
-
-
-
-int keyboard_KeyEcho(t_sdl *sdl, struct callbacks cbs) {
-    int gogogo;
+int keyboard_KeyEcho(struct callbacks cbs) {
+    int gogogo = 1;
     SDL_Event event;
-    gogogo = 1;
     while (gogogo) {
         SDL_WaitEvent(&event);
         if (event.type == SDL_QUIT) gogogo = 0;
@@ -52,18 +31,26 @@ int keyboard_KeyEcho(t_sdl *sdl, struct callbacks cbs) {
                     break;
             }
         }
+
+        // main loop
+
+        
     }
     return 0;
 }
 
 // left right up down pgup pgdn space r f esc F3 F2 F4 F5 F6
-void Keyboard.KeyEcho(struct callbacks cbs);{KKeyEcho}
-Begin
+// void keyboard_KeyEcho(struct callbacks cbs) { // ;{KKeyEcho}
+/*
+    Begin
 	xp:=x; yp:=y; // move outside (to user of this func)
                 clearAim(xp,yp);
         	Aim;
 End;
+*/
+//}
 
+/*
 Procedure Keyboard.GraphRead;
 Label again;
 Var cx: shortint;
@@ -73,4 +60,4 @@ Begin
 	MyWrite(50, 400, 0, 'Please input filename ^');
 	gotoxy(0,0);
 End;
-
+*/

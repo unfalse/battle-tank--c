@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include "includes.h"
 
+void assembly_ClearDisplay(void);
+
 int rx, ry;
 
 struct Data {
@@ -17,7 +19,7 @@ struct Data {
     int x;                  // { Счетчик ячеек по горизонтали			}
     int y;                  // { Счетчик ячеек по вертикали 			}
     char colorpnt;          // { Счетчик цвета 				}
-    char display[MAXX][MAXY]; // { Матрица изображения				}
+    SDL_Color display[MAXX][MAXY]; // { Матрица изображения				}
 /*
 		savs	: boolean;
 		actclr	: boolean;				{ Инд. режима управления цветом			}
@@ -46,6 +48,7 @@ void assembly_Init() {
 	data.x=10;
     data.y=10;
     data.colorpnt=4;
+    assembly_ClearDisplay();
 /*
 	isfls:=false;
 	save:=false;
@@ -64,14 +67,33 @@ void assembly_Init() {
 */
 }
 
+void assembly_ClearDisplay() {
+    for (int i=0; i<MAXX; i++) {
+        for (int j=0; j<MAXY; j++) {
+            data.display[i][j].r = 0;
+            data.display[i][j].g = 0;
+            data.display[i][j].b = 0;
+            data.display[i][j].a = 0;
+        }
+    }
+}
+
 void assembly_GameLoop() {
+    graphics_RenderStart();
+    
     graphics_Field();
     graphics_Decorate();
     graphics_Aim(data.x, data.y);
+    graphics_DrawData((SDL_Color *)data.display);
+    graphics_DrawAsReal((SDL_Color *)data.display);
+    
+    graphics_RenderEnd();
 }
 
 void assembly_Run() {
-    graphics_GameLoop(assembly_GameLoop);
+    // not working, giving an error
+    // events_Loop(graphics_GameLoop(assembly_GameLoop));
+    events_Loop(assembly_GameLoop);
 /*
     do{
         keyboard_KeyEcho(sdl, callbacks);

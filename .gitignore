@@ -2,5 +2,6 @@
 *.c~
 *.o
 *.h~
+*.sh~
 tests
 eitpro4
