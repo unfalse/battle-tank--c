@@ -10,20 +10,9 @@ void events_Loop(void (*main_loop)()) {
 
     while (!quit) {
 
-        /*
-        printf("wait for event...\n");
-        
         SDL_WaitEvent(&event);
-
-        printf("wait ended...\n");
-
-        if (event.type == SDL_QUIT) {
-            printf("quitting...\n");
-            quit = true;
-        }
-        */
         
-        while( SDL_PollEvent(&event) != 0) {
+        //while( SDL_PollEvent(&event) != 0) {
             // printf("polling event...\n");
             // User requests quit
             if(event.type == SDL_QUIT) {
@@ -31,14 +20,13 @@ void events_Loop(void (*main_loop)()) {
                 quit = true;
 			}
             
-		}
+		//}
 
         // printf("wait ended...\n");
 
-        // main loop
-        main_loop();
+        main_loop(event);
 
-        //SDL_Delay(500);
+        SDL_Delay(10);
 
     }
     

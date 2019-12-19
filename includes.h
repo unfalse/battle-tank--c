@@ -1,5 +1,12 @@
 #include <stdbool.h>
 
+#define COLORMAX 16
+#define BEGX 70
+#define BEGY 50
+#define MAXX 20
+#define MAXY 20
+#define FILEEXT '.c20'
+
 // Graphics
 
 bool graphics_Init(void);
@@ -46,12 +53,6 @@ struct callbacks {
     void (*f4_key)();
     void (*f5_key)();
     void (*f6_key)();
-} keyboard_callbacks; 
+} keyboard_Callbacks; 
 
-// Constants
-
-#define BEGX 70
-#define BEGY 50
-#define MAXX 20
-#define MAXY 20
-#define FILEEXT '.c20'
+void keyboard_KeyEcho(SDL_Event event);

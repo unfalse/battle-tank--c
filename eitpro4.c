@@ -3,7 +3,19 @@
 #include <stdbool.h>
 #include "includes.h"
 
+void assembly_Init(void);
 void assembly_ClearDisplay(void);
+void assembly_SetKeyboardCallbacks();
+void assembly_SetColors();
+void assembly_SetCurrentColor(int);
+void assembly_PutPixel();
+
+void left_key();
+void right_key();
+void up_key();
+void down_key();
+void space_key();
+void pgup_key();
 
 int rx, ry;
 
@@ -18,7 +30,12 @@ struct Data {
     bool exiting;           // { Индикатор ухода со станции			}
     int x;                  // { Счетчик ячеек по горизонтали			}
     int y;                  // { Счетчик ячеек по вертикали 			}
-    char colorpnt;          // { Счетчик цвета 				}
+    
+    // char colorpnt;          // { Счетчик цвета 				}
+    int currentColorNum;
+    SDL_Color editor_colors[COLORMAX];
+	SDL_Color currentColor;
+
     SDL_Color display[MAXX][MAXY]; // { Матрица изображения				}
 /*
 		savs	: boolean;
@@ -41,14 +58,16 @@ struct Data {
 int GetRX();
 int GetRY();
 
-void assembly_Init(void);
 void assembly_Init() {
     bool successInit = graphics_Init();
+    assembly_SetColors();
 //	data.filename='untitled';
 	data.x=10;
     data.y=10;
-    data.colorpnt=4;
+    // data.colorpnt=4;
+	assembly_SetCurrentColor(4);
     assembly_ClearDisplay();
+    assembly_SetKeyboardCallbacks();
 /*
 	isfls:=false;
 	save:=false;
@@ -67,20 +86,116 @@ void assembly_Init() {
 */
 }
 
+void assembly_SetColors() {
+    printf("Setting colors...\n");
+    memcpy(data.editor_colors, (SDL_Color[]) {
+        {0x00,0x00,0x00,0x00}, // 0
+        {0x00,0x00,0xaa,0xff},
+        {0x00,0xaa,0x00,0xff}, // 2
+        {0x00,0xaa,0xaa,0xff},
+
+	    {0xaa,0x00,0x00,0xff}, // 4 red
+        {0xaa,0x00,0xaa,0xff}, // 5 magenta
+        {0xaa,0x55,0x00,0xff}, // 6 brown
+        {0xaa,0xaa,0xaa,0xff}, // 7 lightgray
+
+        {0x55,0x55,0x55,0xff}, // 8 darkgray
+        {0x55,0x55,0xff,0xff}, // 9
+        {0x55,0xff,0x55,0xff}, // 10
+	    {0x55,0xff,0xff,0xff}, // 11
+
+        {0xff,0x55,0x55,0xff}, // 12
+        {0xff,0x55,0xff,0xff}, // 13
+        {0xff,0xff,0x55,0xff}, // 14
+	    {0xff,0xff,0xff,0xff}  // 15
+    },
+  COLORMAX * sizeof *data.editor_colors);
+    printf("sizeof colors: ");
+    printf("%d\n", sizeof *data.editor_colors);
+}
+
+void assembly_SetCurrentColor(int colorNum) {
+	data.currentColorNum = colorNum;
+	if (colorNum > COLORMAX - 1) {
+		data.currentColorNum = 0;
+	}
+	data.currentColor = data.editor_colors[data.currentColorNum];
+}
+
 void assembly_ClearDisplay() {
+    int g = 0;
     for (int i=0; i<MAXX; i++) {
         for (int j=0; j<MAXY; j++) {
+            g = 0;
+            if (j==1) g = 255;
             data.display[i][j].r = 0;
-            data.display[i][j].g = 0;
+            data.display[i][j].g = g;
             data.display[i][j].b = 0;
             data.display[i][j].a = 0;
         }
     }
 }
 
-void assembly_GameLoop() {
+void left_key() {
+    if (data.x - 1 >= 0) {
+        data.x--;
+    }
+}
+
+void right_key() {
+    if (data.x + 1 < MAXX) {
+        data.x++;
+    }
+}
+
+void up_key() {
+    if (data.y - 1 >= 0) {
+        data.y--;
+    }
+}
+
+void down_key() {
+    if (data.y + 1 < MAXY) {
+        data.y++;
+    }
+}
+
+void assembly_PutPixel() {
+	data.display[data.x][data.y].r = data.currentColor.r;
+    data.display[data.x][data.y].g = data.currentColor.g;
+    data.display[data.x][data.y].b = data.currentColor.b;
+    data.display[data.x][data.y].a = data.currentColor.a;
+}
+
+void space_key() {
+	assembly_PutPixel();
+   //printf("%d %d %d %d\n", data.display[data.x][data.y].r, data.display[data.x][data.y].g, data.display[data.x][data.y].b, data.display[data.x][data.y].a);
+}
+
+void pgup_key() {
+   assembly_SetCurrentColor(++data.currentColorNum);
+}
+
+void pgdn_key() {
+   assembly_SetCurrentColor(--data.currentColorNum);
+}
+
+void assembly_SetKeyboardCallbacks() {
+    keyboard_Callbacks.left_key = &left_key;
+    keyboard_Callbacks.right_key = &right_key;
+    keyboard_Callbacks.up_key = &up_key;
+    keyboard_Callbacks.down_key = &down_key;
+    keyboard_Callbacks.space_key = &space_key;
+    keyboard_Callbacks.pgup_key = &pgup_key;
+    keyboard_Callbacks.pgdn_key = &pgdn_key;
+}
+
+void assembly_GameLoop(SDL_Event event) {
+    // printf("%d ", event.type);
+    keyboard_KeyEcho(event);
     graphics_RenderStart();
-    
+
+    graphics_ShowXY(data.x, data.y);
     graphics_Field();
     graphics_Decorate();
     graphics_Aim(data.x, data.y);

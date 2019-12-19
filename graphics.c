@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -14,6 +15,7 @@ void graphics_TextFree();
 void graphics_OutTextXY(int, int, char*, SDL_Color);
 void graphics_PutPixel(int, int, SDL_Color);
 void graphics_PutPixels(SDL_Point*, SDL_Color, int);
+void graphics_SetPalette();
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -37,6 +39,33 @@ bool graphics_Init() {
     graphics.gWindow = NULL;
     graphics.gRenderer = NULL;
 
+/*
+   memcpy(data.editor_colors, (SDL_Color[]) {
+        { eepcal[1], eepcal[2] }, {-1, -1}
+    },
+  sizeof *data.editor_colors);
+     
+         data.editor_colors[0] = {0x00,0x00,0x00,0x00}; // 0
+    data.editor_colors[1] = {0x00,0x00,0xaa,0xff};
+    data.editor_colors[2] = {0x00,0xaa,0x00,0xff}; // 2
+    data.editor_colors[3] = {0x00,0xaa,0xaa,0xff};
+
+    data.editor_colors[4] = {0xaa,0x00,0x00,0xff}; // 4 red
+    data.editor_colors[5] = {0xaa,0x00,0xaa,0xff}; // 5 magenta
+    data.editor_colors[6] = {0xaa,0x55,0x00,0xff}; // 6 brown
+    data.editor_colors[7] = {0xaa,0xaa,0xaa,0xff}; // 7 lightgray
+
+    data.editor_colors[8] = {0x55,0x55,0x55,0xff}; // 8 darkgray
+    data.editor_colors[9] = {0x55,0x55,0xff,0xff}; // 9
+    data.editor_colors[10] = {0x55,0xff,0x55,0xff}; // 10
+    data.editor_colors[11] = {0x55,0xff,0xff,0xff}; // 11
+
+    data.editor_colors[12] = {0xff,0x55,0x55,0xff}; // 12
+    data.editor_colors[13] = {0xff,0x55,0xff,0xff}; // 13
+    data.editor_colors[14] = {0xff,0xff,0x55,0xff}; // 14
+    data.editor_colors[15] = {0xff,0xff,0xff,0xff};  // 15
+     */
+    
 	//Initialize SDL
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
@@ -108,6 +137,15 @@ void graphics_Quit() {
 	IMG_Quit();
     SDL_Quit();
 }
+
+/*
+void graphics_SetPalette() {
+    int intColors = 16;
+    //SDL_Palette *palette = (SDL_Palette *)malloc(sizeof(colors[0])*intColors);
+    //SDL_SetPaletteColors(palette, colors, 0, intColors);
+    // SDL_SetSurfacePalette(surface, palette);
+}
+*/
 
 void graphics_RenderTextureAdvanced( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
 {
@@ -205,9 +243,14 @@ void graphics_RenderEnd() {
     SDL_RenderPresent(graphics.gRenderer);
 }
 
-void graphics_ShowXY() {
+void graphics_ShowXY(int x, int y) {
+    char numx[10], numy[10];
+    sprintf(numx, "%d", x);
+    sprintf(numy, "%d", y);
+    SDL_Color color = { 0, 255, 0, 255 };
+    graphics_OutTextXY(70, 35, numx, color);
+    graphics_OutTextXY(120, 35, numy, color);
 /*
-    char* ix, iy;
     setcolor(BLACK);
 	outtextxy(70,40,'████████████');
 	str(getry,iy);
@@ -227,8 +270,6 @@ end;
 */
 }
 
-
-
 void graphics_DrawData(SDL_Color *display) {// {GDrawData}
     int rx=0, ry=0;
     for (rx=0; rx<MAXX; rx++) {
@@ -240,34 +281,18 @@ void graphics_DrawData(SDL_Color *display) {// {GDrawData}
 
 void graphics_Field() { //{GField}
     SDL_Color color = { 255, 255, 255, 255 };
-    SDL_Point points[MAXX*MAXY];
-    // SDL_Point p1[1] = { { 5, 5 } };
-    int x1, y1;
+    SDL_Point points[(MAXX+1) * (MAXY+1)];
 
-    // graphics_OutTextXY(5, 5, "HELLO", color);
-    
-    // 
-    
-    for(x1=0; x1<MAXX; x1++) {
-        for(y1=0; y1<MAXY; y1++) {
-            points[y1 + (x1*MAXY)].x = x1 * 10 + BEGX;
-            points[y1 + (x1*MAXY)].y = y1 * 10 + BEGY;
+    //printf("\n --- \n");
+    for(int x1=0; x1 < MAXX+1; x1++) {
+        for(int y1=0; y1 < MAXY+1; y1++) {
+            points[y1 + (x1*(MAXY+1))].x = x1 * 10 + BEGX;
+            points[y1 + (x1*(MAXY+1))].y = y1 * 10 + BEGY;
+            //printf("[%d] = %d : %d | ", y1 + (x1*(MAXY+1)), x1, y1);
         }
     }
 
-    graphics_PutPixels(points, color, MAXX*MAXY);
-
-    // TODO: write and use PutPixels here
-/*
-    SDL_Color color = { 255, 255, 0, 255 };
-    int x1, y1;
-    for(x1=0; x1<MAXX; x1++) {
-        for(y1=0; y1<MAXY; y1++) {
-            printf("%d : %d ", x1, y1);
-             graphics_PutPixel(x1 * 10 + BEGX, y1 * 10 + BEGY, color);
-        }
-    }
-*/
+    graphics_PutPixels(points, color, (MAXX+1)*(MAXY+1));
 }
 
 void graphics_Decorate() {// {GDecorate}
@@ -276,7 +301,7 @@ void graphics_Decorate() {// {GDecorate}
     // SDL_RenderClear(graphics.gRenderer);
 
     SDL_Color color = { 51, 255, 255, 255 };
-    graphics_Rectangle(400 - 2, 2, (400 + MAXX + 1) - 400 - 2, 4 + MAXY + 3 - 2, color);
+    graphics_Rectangle(400 - 2, 2, MAXX, MAXY, color);
 
     SDL_Color color2 = { 0, 127, 0, 255 }; // setcolor(green);
     graphics_Rectangle(40*10+BEGX+1-2, 20*10+BEGY+1-2, 40*10+BEGX+9+2 - 40*10+BEGX+1-2, 20*10+BEGY+9+2 - 20*10+BEGY+1-2, color2);
@@ -335,6 +360,7 @@ void graphics_Rectangle(int x, int y, int w, int h, SDL_Color color) {
 
 void graphics_FillCell(int x, int y, SDL_Color color) { // {GFillCell}
     SDL_Rect bar = { x * 10 + BEGX + 1, y * 10 + BEGY + 1, 8, 8 };
+    // printf("%d %d %d %d |", color.r, color.g, color.b, color.a);
     SDL_SetRenderDrawColor(graphics.gRenderer, color.r, color.g, color.b, color.a);
     SDL_RenderFillRect(graphics.gRenderer, &bar);
 //    setfillstyle(solidfill, colorpnt);
