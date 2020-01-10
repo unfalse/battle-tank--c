@@ -3,16 +3,17 @@
 #include <SDL2/SDL.h>
 #include "includes.h"
 
-void events_Loop(void (*main_loop)()) {
+void events_Loop(void (*main_loop)(), void (*key_echo)()) {
 
     bool quit = false;
     SDL_Event event;
 
     while (!quit) {
-
-        SDL_WaitEvent(&event);
         
-        //while( SDL_PollEvent(&event) != 0) {
+        // SDL_WaitEvent(&event);
+
+        while( SDL_PollEvent(&event) != 0) {
+            key_echo(event);
             // printf("polling event...\n");
             // User requests quit
             if(event.type == SDL_QUIT) {
@@ -20,13 +21,13 @@ void events_Loop(void (*main_loop)()) {
                 quit = true;
 			}
             
-		//}
-
+		}
+        
         // printf("wait ended...\n");
 
         main_loop(event);
 
-        SDL_Delay(10);
+        //SDL_Delay(100);
 
     }
     

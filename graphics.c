@@ -16,6 +16,9 @@ void graphics_OutTextXY(int, int, char*, SDL_Color);
 void graphics_PutPixel(int, int, SDL_Color);
 void graphics_PutPixels(SDL_Point*, SDL_Color, int);
 void graphics_SetPalette();
+void graphics_Help();
+void graphics_SetColor(int);
+void graphics_ShowFPS(float);
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -30,6 +33,7 @@ struct graphics_struct {
 	//Image dimensions
 	int mWidth;
 	int mHeight;
+    SDL_Color currentColor;
 } graphics;
 
 bool graphics_Init() {
@@ -146,6 +150,13 @@ void graphics_SetPalette() {
     // SDL_SetSurfacePalette(surface, palette);
 }
 */
+
+void graphics_ShowFPS(float fps) {
+    char fps_str[20];
+    sprintf(fps_str, "%f", fps);
+    SDL_Color color = { 0, 255, 0, 255 };
+    graphics_OutTextXY(20, 20, fps_str, color);
+}
 
 void graphics_RenderTextureAdvanced( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
 {
@@ -270,11 +281,12 @@ end;
 */
 }
 
-void graphics_DrawData(SDL_Color *display) {// {GDrawData}
+//void graphics_DrawData(SDL_Color *display) {// {GDrawData}
+void graphics_DrawData(SDL_Color display[][MAXY]) {// {GDrawData}
     int rx=0, ry=0;
     for (rx=0; rx<MAXX; rx++) {
         for (ry=0; ry<MAXY; ry++) {
-            graphics_FillCell(rx, ry, *((display + rx * MAXY) + ry));
+            graphics_FillCell(rx, ry, display[rx][ry]);
         }
     }
 }
@@ -283,12 +295,10 @@ void graphics_Field() { //{GField}
     SDL_Color color = { 255, 255, 255, 255 };
     SDL_Point points[(MAXX+1) * (MAXY+1)];
 
-    //printf("\n --- \n");
     for(int x1=0; x1 < MAXX+1; x1++) {
         for(int y1=0; y1 < MAXY+1; y1++) {
             points[y1 + (x1*(MAXY+1))].x = x1 * 10 + BEGX;
             points[y1 + (x1*(MAXY+1))].y = y1 * 10 + BEGY;
-            //printf("[%d] = %d : %d | ", y1 + (x1*(MAXY+1)), x1, y1);
         }
     }
 
@@ -419,6 +429,10 @@ Begin
 			end;
 End;
 */
+}
+
+void graphics_Help() {
+    
 }
 
 /*

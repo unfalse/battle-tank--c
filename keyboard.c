@@ -6,7 +6,6 @@
 void keyboard_KeyEcho(SDL_Event event) {
 
     if (event.type == SDL_KEYDOWN) {
-        // printf("keydown! %d\n",event.key.keysym.scancode); 
         switch(event.key.keysym.sym){
             case SDLK_SPACE:    keyboard_Callbacks.space_key(); break;
             case SDLK_LEFT:     keyboard_Callbacks.left_key(); break;

@@ -33,10 +33,12 @@ struct Data {
     
     // char colorpnt;          // { Счетчик цвета 				}
     int currentColorNum;
-    SDL_Color editor_colors[COLORMAX];
+    // SDL_Color editor_colors[COLORMAX];
 	SDL_Color currentColor;
 
     SDL_Color display[MAXX][MAXY]; // { Матрица изображения				}
+
+    int countedFrames;
 /*
 		savs	: boolean;
 		actclr	: boolean;				{ Инд. режима управления цветом			}
@@ -68,6 +70,10 @@ void assembly_Init() {
 	assembly_SetCurrentColor(4);
     assembly_ClearDisplay();
     assembly_SetKeyboardCallbacks();
+
+        	//Start counting frames per second
+	data.countedFrames = 0;
+	ltimer_Start();
 /*
 	isfls:=false;
 	save:=false;
@@ -88,11 +94,11 @@ void assembly_Init() {
 
 void assembly_SetColors() {
     printf("Setting colors...\n");
-    memcpy(data.editor_colors, (SDL_Color[]) {
-        {0x00,0x00,0x00,0x00}, // 0
-        {0x00,0x00,0xaa,0xff},
-        {0x00,0xaa,0x00,0xff}, // 2
-        {0x00,0xaa,0xaa,0xff},
+    memcpy(graphics_editor_colors, (SDL_Color[]) {
+        {0x00,0x00,0x00,0x00}, // 0 black
+        {0x00,0x00,0xaa,0xff}, // 1 blue
+        {0x00,0xaa,0x00,0xff}, // 2 green
+        {0x00,0xaa,0xaa,0xff}, // 3 cyan
 
 	    {0xaa,0x00,0x00,0xff}, // 4 red
         {0xaa,0x00,0xaa,0xff}, // 5 magenta
@@ -100,18 +106,18 @@ void assembly_SetColors() {
         {0xaa,0xaa,0xaa,0xff}, // 7 lightgray
 
         {0x55,0x55,0x55,0xff}, // 8 darkgray
-        {0x55,0x55,0xff,0xff}, // 9
-        {0x55,0xff,0x55,0xff}, // 10
-	    {0x55,0xff,0xff,0xff}, // 11
+        {0x55,0x55,0xff,0xff}, // 9 lightblue
+        {0x55,0xff,0x55,0xff}, // 10 lightgreen
+	    {0x55,0xff,0xff,0xff}, // 11 lightcyan
 
-        {0xff,0x55,0x55,0xff}, // 12
-        {0xff,0x55,0xff,0xff}, // 13
-        {0xff,0xff,0x55,0xff}, // 14
-	    {0xff,0xff,0xff,0xff}  // 15
+        {0xff,0x55,0x55,0xff}, // 12 lightred
+        {0xff,0x55,0xff,0xff}, // 13 lightmagenta
+        {0xff,0xff,0x55,0xff}, // 14 yellow
+	    {0xff,0xff,0xff,0xff}  // 15 white
     },
-  COLORMAX * sizeof *data.editor_colors);
+  COLORMAX * sizeof *graphics_editor_colors);
     printf("sizeof colors: ");
-    printf("%d\n", sizeof *data.editor_colors);
+    printf("%d\n", sizeof *graphics_editor_colors);
 }
 
 void assembly_SetCurrentColor(int colorNum) {
@@ -119,17 +125,14 @@ void assembly_SetCurrentColor(int colorNum) {
 	if (colorNum > COLORMAX - 1) {
 		data.currentColorNum = 0;
 	}
-	data.currentColor = data.editor_colors[data.currentColorNum];
+	data.currentColor = graphics_editor_colors[data.currentColorNum];
 }
 
 void assembly_ClearDisplay() {
-    int g = 0;
     for (int i=0; i<MAXX; i++) {
         for (int j=0; j<MAXY; j++) {
-            g = 0;
-            if (j==1) g = 255;
             data.display[i][j].r = 0;
-            data.display[i][j].g = g;
+            data.display[i][j].g = 0;
             data.display[i][j].b = 0;
             data.display[i][j].a = 0;
         }
@@ -161,23 +164,19 @@ void down_key() {
 }
 
 void assembly_PutPixel() {
-	data.display[data.x][data.y].r = data.currentColor.r;
-    data.display[data.x][data.y].g = data.currentColor.g;
-    data.display[data.x][data.y].b = data.currentColor.b;
-    data.display[data.x][data.y].a = data.currentColor.a;
+    data.display[data.x][data.y] = data.currentColor;
 }
 
 void space_key() {
 	assembly_PutPixel();
-   //printf("%d %d %d %d\n", data.display[data.x][data.y].r, data.display[data.x][data.y].g, data.display[data.x][data.y].b, data.display[data.x][data.y].a);
 }
 
 void pgup_key() {
-   assembly_SetCurrentColor(++data.currentColorNum);
+    assembly_SetCurrentColor(++data.currentColorNum);
 }
 
 void pgdn_key() {
-   assembly_SetCurrentColor(--data.currentColorNum);
+    assembly_SetCurrentColor(--data.currentColorNum);
 }
 
 void assembly_SetKeyboardCallbacks() {
@@ -191,24 +190,33 @@ void assembly_SetKeyboardCallbacks() {
 }
 
 void assembly_GameLoop(SDL_Event event) {
-    // printf("%d ", event.type);
-    keyboard_KeyEcho(event);
+
+	//Calculate and correct fps
+	float avgFPS = data.countedFrames / ( ltimer_GetTicks() / 1000.f );
+	if( avgFPS > 2000000 )
+	{
+		avgFPS = 0;
+	}
+    
+    // keyboard_KeyEcho(event);
     graphics_RenderStart();
 
+    graphics_ShowFPS(avgFPS);
     graphics_ShowXY(data.x, data.y);
     graphics_Field();
     graphics_Decorate();
     graphics_Aim(data.x, data.y);
-    graphics_DrawData((SDL_Color *)data.display);
+    graphics_DrawData(data.display);
     graphics_DrawAsReal((SDL_Color *)data.display);
     
     graphics_RenderEnd();
+    ++data.countedFrames;
 }
 
 void assembly_Run() {
     // not working, giving an error
     // events_Loop(graphics_GameLoop(assembly_GameLoop));
-    events_Loop(assembly_GameLoop);
+    events_Loop(assembly_GameLoop, keyboard_KeyEcho);
 /*
     do{
         keyboard_KeyEcho(sdl, callbacks);
