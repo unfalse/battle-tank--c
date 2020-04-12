@@ -55,6 +55,7 @@ SDL_Color graphics_editor_colors[COLORMAX];
 // Events
 
 void events_Loop(void (*main_loop)(), void (*key_echo)());
+void events_Quit();
 
 // LTimer
 //Gets the timer's time

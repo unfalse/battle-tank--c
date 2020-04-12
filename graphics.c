@@ -19,6 +19,7 @@ void graphics_SetPalette();
 void graphics_Help();
 void graphics_SetColor(int);
 void graphics_ShowFPS(float);
+Uint32 graphics_GetPixel(SDL_Surface*, int, int);
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -127,18 +128,24 @@ void graphics_Quit() {
 	// gTextTexture.free();
 
 	//Free global font
+    printf("CloseFont...\n");
 	TTF_CloseFont( graphics.gFont );
     graphics.gFont = NULL;
 
-	//Destroy window	
+	//Destroy window
+    printf("SDL_DestroyRenderer...\n");
 	SDL_DestroyRenderer( graphics.gRenderer );
+    printf("SDL_DestroyWindow...\n");
 	SDL_DestroyWindow( graphics.gWindow );
 	graphics.gWindow = NULL;
 	graphics.gRenderer = NULL;
 
 	//Quit SDL subsystems
+    printf("TTF_Quit...\n");
 	TTF_Quit();
+    printf("IMG_Quit...\n");
 	IMG_Quit();
+    printf("SDL_Quit...\n");
     SDL_Quit();
 }
 
@@ -219,7 +226,7 @@ bool graphics_LoadFromRenderedText( char* textureText, SDL_Color textColor )
 		}
 
 		//Get rid of old surface
-		SDL_FreeSurface( textSurface );
+		//SDL_FreeSurface( textSurface );
 	}
 	
 	//Return success
@@ -396,6 +403,37 @@ void graphics_DrawAsReal(SDL_Color *display) { // {GDrawAsReal}
     }
 }
 
+Uint32 graphics_GetPixel(SDL_Surface *surface, int x, int y) {
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to retrieve */
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+
+switch (bpp)
+{
+    case 1:
+        return *p;
+        break;
+
+    case 2:
+        return *(Uint16 *)p;
+        break;
+
+    case 3:
+        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            return p[0] << 16 | p[1] << 8 | p[2];
+        else
+            return p[0] | p[1] << 8 | p[2] << 16;
+            break;
+
+        case 4:
+            return *(Uint32 *)p;
+            break;
+
+        default:
+            return 0;       /* shouldn't happen, but avoids warnings */
+      }
+}
+
 void graphics_ClearAim(int x1, int y1){
 /*
 begin
@@ -432,24 +470,49 @@ End;
 }
 
 void graphics_Help() {
+    int y = 0;
+    for (y=413; y<480; y++) {
+        graphics_Line(0, y, 640, y, graphics_editor_colors[DARKGRAY]);
+    }
+    graphics_Line(0, 398, 640, 398, graphics_editor_colors[GREEN]);
     
+    graphics_OutTextXY(10, 400, "_=-       Colors        |      Files          |          Miscellaneous    -=_", graphics_editor_colors[WHITE]);
+    graphics_OutTextXY(10, 412, "PgUp  - increase color  |  F2 - save file     |  F6  - turn the textures on  ", graphics_editor_colors[LIGHTGRAY]);
+	graphics_OutTextXY(10, 424, "PgDn  - decrease color  |  F3 - open file     |  Esc - exit                  ", graphics_editor_colors[LIGHTGRAY]);
+	graphics_OutTextXY(10, 436, "Space - put color       |  F4 - find file     |       Cursor keys            ", graphics_editor_colors[LIGHTGRAY]);
+	graphics_OutTextXY(10, 448, "r     - erase image     |  F5 - save file as  |  Move the cursor             ", graphics_editor_colors[LIGHTGRAY]);
+	graphics_OutTextXY(10, 460, "f     - fill image with selected color        |", graphics_editor_colors[LIGHTGRAY]);
 }
 
+void graphics_LOGO() {
+    int x, y, col;
+    graphics_OutTextXY(475, 5, "nopefish developments", graphics_editor_colors[LIGHTBLUE]);
+    graphics_OutTextXY(200, 5, "EDITPRO V.1.5", graphics_editor_colors[WHITE]);
+    for(x=199; x<303; x++) {
+        for(y=4; y<12; y++) {
+            
+        }
+    }
+//var	x,y,col:integer;
+// begin
 /*
-Procedure Help;
-var	y:integer;
-Begin
-	setcolor(DARKGRAY);
-	for y:=429 to getmaxy do line(0, y, getmaxx, y);
-	setcolor(green);
-	line(0, 418, getmaxx, 418);
-	Mywrite(10, 420, WHITE,'_=-       Colors        |      Files          |          Miscellaneous    -=_');
-	Mywrite(10, 430, LIGHTGRAY,'PgUp  - increase color  |  F2 - save file     |  F6  - turn the textures on  ');
-	Mywrite(10, 440, LIGHTGRAY,'PgDn  - decrease color  |  F3 - open file     |  Esc - exit                  ');
-	Mywrite(10, 450, LIGHTGRAY,'Press - put color       |  F4 - find file     |       Cursor keys            ');
-	Mywrite(10, 460, LIGHTGRAY,'r     - erase image     |  F5 - save file as  |  Move the cursor             ');
-	Mywrite(10, 470, LIGHTGRAY,'f     - fill image with selected color        |');
-End;
+	setcolor(LIGHTBLUE);
+	outtextxy(475, 5, '_=- TUFTA SOFT -=_');
+	setcolor(15);
+	outtextxy(200, 5, 'EDITPRO V.1.5');
+	For x:=199 to 303 do
+        	For y:=4 to 12 do
+		begin
+		col:=getpixel(x,y);
+		col:=col xor red;
+                PutPixel(x,y,col);
+		end;
+end;
+*/
+}
+
+
+/*
 
 Procedure LOGO;
 var	x,y,col:integer;

@@ -3,9 +3,14 @@
 #include <SDL2/SDL.h>
 #include "includes.h"
 
+bool quit = false;
+
+void events_Quit() {
+    quit = true;
+}
+
 void events_Loop(void (*main_loop)(), void (*key_echo)()) {
 
-    bool quit = false;
     SDL_Event event;
 
     while (!quit) {
@@ -17,7 +22,7 @@ void events_Loop(void (*main_loop)(), void (*key_echo)()) {
             // printf("polling event...\n");
             // User requests quit
             if(event.type == SDL_QUIT) {
-                // printf("quitting...\n");
+                printf("quitting...\n");
                 quit = true;
 			}
             

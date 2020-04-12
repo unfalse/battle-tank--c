@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <stdbool.h>
+#include <stdio.h>
+//#include <sys/types.h>
+//#include <sys/stat.h>
+//#include <fcntl.h>
+//#include <unistd.h>
 #include "includes.h"
 
 void assembly_Init(void);
@@ -9,6 +14,7 @@ void assembly_SetKeyboardCallbacks();
 void assembly_SetColors();
 void assembly_SetCurrentColor(int);
 void assembly_PutPixel();
+void files_OpenFIMG();
 
 void left_key();
 void right_key();
@@ -16,6 +22,7 @@ void up_key();
 void down_key();
 void space_key();
 void pgup_key();
+void f3_key();
 
 int rx, ry;
 
@@ -179,6 +186,14 @@ void pgdn_key() {
     assembly_SetCurrentColor(--data.currentColorNum);
 }
 
+void f3_key() {
+    files_OpenFIMG();
+}
+
+void esc_key() {
+    events_Quit();
+}
+
 void assembly_SetKeyboardCallbacks() {
     keyboard_Callbacks.left_key = &left_key;
     keyboard_Callbacks.right_key = &right_key;
@@ -187,10 +202,11 @@ void assembly_SetKeyboardCallbacks() {
     keyboard_Callbacks.space_key = &space_key;
     keyboard_Callbacks.pgup_key = &pgup_key;
     keyboard_Callbacks.pgdn_key = &pgdn_key;
+    keyboard_Callbacks.f3_key = &f3_key;
+    keyboard_Callbacks.esc_key = &esc_key;
 }
 
 void assembly_GameLoop(SDL_Event event) {
-
 	//Calculate and correct fps
 	float avgFPS = data.countedFrames / ( ltimer_GetTicks() / 1000.f );
 	if( avgFPS > 2000000 )
@@ -208,7 +224,8 @@ void assembly_GameLoop(SDL_Event event) {
     graphics_Aim(data.x, data.y);
     graphics_DrawData(data.display);
     graphics_DrawAsReal((SDL_Color *)data.display);
-    
+    graphics_Help();
+
     graphics_RenderEnd();
     ++data.countedFrames;
 }
@@ -216,6 +233,7 @@ void assembly_GameLoop(SDL_Event event) {
 void assembly_Run() {
     // not working, giving an error
     // events_Loop(graphics_GameLoop(assembly_GameLoop));
+    //f3_key();
     events_Loop(assembly_GameLoop, keyboard_KeyEcho);
 /*
     do{
@@ -227,6 +245,77 @@ void assembly_Run() {
     } while(exiting!=true);
 */
 }
+
+void files_OpenFIMG() {
+    // 1. open file
+    FILE *fd;
+    unsigned char fbuf[400];
+    int filePos = 0;
+    int color = 0;
+    
+    printf("Opening file...\n");
+    fd = fopen("images/CSW-MT5.C20", "r");
+    if (!fd) {
+        printf("ERROR!\n");
+    } else {
+        printf("SUCCESS!\n");
+        printf("Reading...\n");
+        fread(fbuf, 400, 1, fd);
+        printf("Closing...\n");
+	    fclose(fd);
+        //printf("Results: ");
+
+        // load!
+        for (int i=0; i<MAXX; i++) {
+            for (int j=0; j<MAXY; j++) {
+                color = fbuf[filePos] - 176;
+                //printf("%d ", color);
+                data.display[i][j] = graphics_editor_colors[color];
+                // data.display[i][j].r = 0;
+                //data.display[i][j].g = 0;
+                //data.display[i][j].b = 0;
+                //data.display[i][j].a = 0;
+                filePos++;
+            }
+        }
+    }
+    printf("\n");
+    // 2. read all data from the file
+    // 4. copy data to display
+}
+
+/*
+Procedure Files.OpenFIMG;{FOpenFIMG}
+Label ok;
+	Begin
+		assign(fimg, filename+StrPas(FileExt));
+		IsClose:=False;
+		{$I-}
+		reset(fimg);
+		{$I+}
+		if ioresult = 0 then begin
+		rx:=0; ry:=0;
+		for rx:=0 to MaxX-1 do begin
+			for ry:=0 to MaxY-1 do begin
+ok:				read(fimg, bt);
+				if bt=$0D then goto ok;
+				display[rx, ry]:=bt-176;
+			end;
+		end;
+		close(fimg);
+		IsClose:=true;
+		caption;
+		end
+		else begin
+			MyWrite(5, 420, red,'Can''t open file ' );
+			MyWrite(5+130,420,red,filename+StrPas(fileExt));
+			delay(2000);
+			MyWrite(5, 420, 0, 'ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ');
+			isclose:=true;
+		end;
+
+	End;
+*/
 
 /* very bad idea!
 void MainHandler();
@@ -268,6 +357,7 @@ int main(){
     assembly_Init();
     assembly_Run();
 
+    printf("graphics_Quit...\n");
     graphics_Quit();
 
     return 0;
