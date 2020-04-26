@@ -1,5 +1,22 @@
 #include <stdio.h>
+#include<stdlib.h>
+#include<time.h>
 
+//generate number in range [min,max)
+int myrandom(int min, int max){
+    int number = min + rand() % (max - min);
+    return number; 
+}
+
+//Driver code
+int random_main() {
+    srand(time(NULL));
+    for(int i = 1; i <= 10; i++){
+        printf("%d\t", myrandom(10, 100));
+    }
+	printf("\n");
+    return 0;
+}
 void func() {
     printf("Hello from func!\n");
 }
@@ -42,6 +59,7 @@ void files_OpenFIMG() {
     // 4. copy data to display
 }
 
+/*
 void Csw_init(struct Csw *csw) {
     *csw.x = 0;
     *csw.y = 0;
@@ -75,6 +93,7 @@ void CreateCsw() {
         curr = c1;
     }
 }
+*/
 
 /*
 Procedure CreateCsw;
@@ -108,10 +127,12 @@ int main() {
     i = c - 176;
     printf("i = %d\n", i);
 
-    files_OpenFIMG();
+    //files_OpenFIMG();
 
-    CreateCsw();
+    //CreateCsw();
     
+	random_main();
+
     // segfault!
     //const char * s = "hello world";
     //* (char *) s = 'H';

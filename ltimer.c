@@ -4,127 +4,125 @@
 
 //The application time based timer
 //Initializes variables
-void ltimer_Init();
+void ltimer_Init(LTimer timer);
 
 //The various clock actions
-void ltimer_Stop();
-void ltimer_Pause();
-void ltimer_Unpause();
+void ltimer_Stop(LTimer timer);
+void ltimer_Pause(LTimer timer);
+void ltimer_Unpause(LTimer timer);
 
 //Checks the status of the timer
-bool ltimer_IsStarted();
-bool ltimer_IsPaused();
+bool ltimer_IsStarted(LTimer timer);
+bool ltimer_IsPaused(LTimer timer);
 
-struct LTimer {
-    //The clock time when the timer started
-    Uint32 mStartTicks;
+/*
+void ltimer_capTimerStart() {
+    capTimer.start();
+}
 
-    //The ticks stored when the timer was paused
-    Uint32 mPausedTicks;
+int ltimer_getCapTimerTicks() {
+    return capTimer.getTicks();
+}
+*/
 
-    //The timer status
-    bool mPaused;
-    bool mStarted;
-} ltimer;
-
-void ltimer_Init()
+void ltimer_Init(LTimer timer)
 {
     //Initialize the variables
-    ltimer.mStartTicks = 0;
-    ltimer.mPausedTicks = 0;
+    timer.mStartTicks = 0;
+    timer.mPausedTicks = 0;
 
-    ltimer.mPaused = false;
-    ltimer.mStarted = false;
+    timer.mPaused = false;
+    timer.mStarted = false;
 }
 
-void ltimer_Start()
+void ltimer_Start(LTimer timer)
 {
     //Start the timer
-    ltimer.mStarted = true;
+    timer.mStarted = true;
 
     //Unpause the timer
-    ltimer.mPaused = false;
+    timer.mPaused = false;
 
     //Get the current clock time
-    ltimer.mStartTicks = SDL_GetTicks();
-	ltimer.mPausedTicks = 0;
+    timer.mStartTicks = SDL_GetTicks();
+	timer.mPausedTicks = 0;
 }
 
-void ltimer_Stop()
+void ltimer_Stop(LTimer timer)
 {
     //Stop the timer
-    ltimer.mStarted = false;
+    timer.mStarted = false;
 
     //Unpause the timer
-    ltimer.mPaused = false;
+    timer.mPaused = false;
 
 	//Clear tick variables
-	ltimer.mStartTicks = 0;
-	ltimer.mPausedTicks = 0;
+	timer.mStartTicks = 0;
+	timer.mPausedTicks = 0;
 }
 
-void ltimer_Pause()
+void ltimer_Pause(LTimer timer)
 {
     //If the timer is running and isn't already paused
-    if( ltimer.mStarted && !ltimer.mPaused )
+    if( timer.mStarted && !timer.mPaused )
     {
         //Pause the timer
-        ltimer.mPaused = true;
+        timer.mPaused = true;
 
         //Calculate the paused ticks
-        ltimer.mPausedTicks = SDL_GetTicks() - ltimer.mStartTicks;
-		ltimer.mStartTicks = 0;
+        timer.mPausedTicks = SDL_GetTicks() - timer.mStartTicks;
+		timer.mStartTicks = 0;
     }
 }
 
-void ltimer_Unpause()
+void ltimer_Unpause(LTimer timer)
 {
     //If the timer is running and paused
-    if( ltimer.mStarted && ltimer.mPaused )
+    if( timer.mStarted && timer.mPaused )
     {
         //Unpause the timer
-        ltimer.mPaused = false;
+        timer.mPaused = false;
 
         //Reset the starting ticks
-        ltimer.mStartTicks = SDL_GetTicks() - ltimer.mPausedTicks;
+        timer.mStartTicks = SDL_GetTicks() - timer.mPausedTicks;
 
         //Reset the paused ticks
-        ltimer.mPausedTicks = 0;
+        timer.mPausedTicks = 0;
     }
 }
 
-Uint32 ltimer_GetTicks()
+Uint32 ltimer_GetTicks(LTimer timer)
 {
 	//The actual timer time
 	Uint32 time = 0;
 
     //If the timer is running
-    if( ltimer.mStarted )
+    if( timer.mStarted )
     {
         //If the timer is paused
-        if( ltimer.mPaused )
+        if( timer.mPaused )
         {
             //Return the number of ticks when the timer was paused
-            time = ltimer.mPausedTicks;
+            time = timer.mPausedTicks;
         }
         else
         {
             //Return the current time minus the start time
-            time = SDL_GetTicks() - ltimer.mStartTicks;
+            time = SDL_GetTicks() - timer.mStartTicks;
         }
     }
 
     return time;
 }
 
-bool ltimer_IsStarted()
+bool ltimer_IsStarted(LTimer timer)
 {
 	//Timer is running and paused or unpaused
-    return ltimer.mStarted;
+    return timer.mStarted;
 }
 
-bool ltimer_IsPaused()
+bool ltimer_IsPaused(LTimer timer)
 {
 	//Timer is running and paused
-    return ltimer.mPaused && ltimer.mStarted;
+    return timer.mPaused && timer.mStarted;
 }

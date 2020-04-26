@@ -36,15 +36,19 @@ void graphics_Decorate();               //	{ Оформление				}
 //void graphics_DrawData(SDL_Color *);    //  { Рисует содержимое массива изображения }
 void graphics_DrawData(SDL_Color [][MAXY]);    //  { Рисует содержимое массива изображения }
 void graphics_DrawAsReal(SDL_Color *);  //	{ Рисует рисунок таким, каким он будет	}
+void graphics_DrawAsRealAtXY(SDL_Color *display, int x, int y);
 void graphics_EraseImg();               //	{ Стирает всё изображение		}
 void graphics_FillImg();                //	{ Заливает всю картинку выбранным цветом}
 void graphics_Field();                  //  { Рисует поле для редактирования	}
 // void graphics_FillCell(int, int, );  // { Закрашивает клетку			}
 void graphics_ShowXY();                 // { Показывает текущие координаты курсора	}
 void graphics_ShowFPS(float);
+void graphics_Line(int, int, int, int, SDL_Color);
 void graphics_LOGO();
 void graphics_Help();
 void graphics_MyWrite();
+SDL_Texture* graphics_LoadFromPNG(const char* file);
+void graphics_RenderLoadedTexture(SDL_Texture* texture, int x, int y, int width, int height);
 void graphics_GameLoop(void (*game_loop)());
 void graphics_RenderStart();
 void graphics_RenderEnd();
@@ -61,6 +65,8 @@ void events_Quit();
 //Gets the timer's time
 Uint32 ltimer_GetTicks();
 void ltimer_Start();
+void capTimer_Start();
+int ltimer_getCapTimerTicks();
 
 // Keyboard
 
@@ -83,3 +89,19 @@ struct callbacks {
 } keyboard_Callbacks; 
 
 void keyboard_KeyEcho(SDL_Event event);
+
+typedef struct DisplayStructs {
+    SDL_Color image[MAXX][MAXY];
+} DisplayStruct;
+
+typedef struct LTimers {
+    //The clock time when the timer started
+    Uint32 mStartTicks;
+
+    //The ticks stored when the timer was paused
+    Uint32 mPausedTicks;
+
+    //The timer status
+    bool mPaused;
+    bool mStarted;
+} LTimer;

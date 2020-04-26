@@ -14,7 +14,9 @@ void assembly_SetKeyboardCallbacks();
 void assembly_SetColors();
 void assembly_SetCurrentColor(int);
 void assembly_PutPixel();
-void files_OpenFIMG();
+DisplayStruct files_OpenFIMG();
+LTimer ltimer;
+void try_LoadC20intoTexture();
 
 void left_key();
 void right_key();
@@ -43,7 +45,8 @@ struct Data {
     // SDL_Color editor_colors[COLORMAX];
 	SDL_Color currentColor;
 
-    SDL_Color display[MAXX][MAXY]; // { Матрица изображения				}
+    //SDL_Color display[MAXX][MAXY]; // { Матрица изображения				}
+    DisplayStruct display;
 
     int countedFrames;
 /*
@@ -67,6 +70,8 @@ struct Data {
 int GetRX();
 int GetRY();
 
+SDL_Texture* csw_mt5;
+
 void assembly_Init() {
     bool successInit = graphics_Init();
     assembly_SetColors();
@@ -78,9 +83,11 @@ void assembly_Init() {
     assembly_ClearDisplay();
     assembly_SetKeyboardCallbacks();
 
+    csw_mt5 = graphics_LoadFromPNG("images/csw-mt5.png");
+
         	//Start counting frames per second
 	data.countedFrames = 0;
-	ltimer_Start();
+	ltimer_Start(ltimer);
 /*
 	isfls:=false;
 	save:=false;
@@ -138,10 +145,10 @@ void assembly_SetCurrentColor(int colorNum) {
 void assembly_ClearDisplay() {
     for (int i=0; i<MAXX; i++) {
         for (int j=0; j<MAXY; j++) {
-            data.display[i][j].r = 0;
-            data.display[i][j].g = 0;
-            data.display[i][j].b = 0;
-            data.display[i][j].a = 0;
+            data.display.image[i][j].r = 0;
+            data.display.image[i][j].g = 0;
+            data.display.image[i][j].b = 0;
+            data.display.image[i][j].a = 0;
         }
     }
 }
@@ -171,7 +178,7 @@ void down_key() {
 }
 
 void assembly_PutPixel() {
-    data.display[data.x][data.y] = data.currentColor;
+    data.display.image[data.x][data.y] = data.currentColor;
 }
 
 void space_key() {
@@ -186,8 +193,9 @@ void pgdn_key() {
     assembly_SetCurrentColor(--data.currentColorNum);
 }
 
+DisplayStruct imgData[10];
 void f3_key() {
-    files_OpenFIMG();
+    printf("new!\n");
 }
 
 void esc_key() {
@@ -208,7 +216,7 @@ void assembly_SetKeyboardCallbacks() {
 
 void assembly_GameLoop(SDL_Event event) {
 	//Calculate and correct fps
-	float avgFPS = data.countedFrames / ( ltimer_GetTicks() / 1000.f );
+	float avgFPS = data.countedFrames / ( ltimer_GetTicks(ltimer) / 1000.f );
 	if( avgFPS > 2000000 )
 	{
 		avgFPS = 0;
@@ -222,8 +230,21 @@ void assembly_GameLoop(SDL_Event event) {
     graphics_Field();
     graphics_Decorate();
     graphics_Aim(data.x, data.y);
-    graphics_DrawData(data.display);
-    graphics_DrawAsReal((SDL_Color *)data.display);
+
+    graphics_DrawData(data.display.image);
+    //graphics_DrawAsReal((SDL_Color *)data.display);
+    graphics_DrawAsRealAtXY((SDL_Color *)data.display.image, 400, 5);
+    
+    graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
+    //graphics_DrawAsRealAtXY((SDL_Color *)imgData.image, 400, 200);
+/*
+    for(int ic=0; ic<10; ic++) {
+        graphics_DrawAsRealAtXY((SDL_Color *)imgData[ic].image, 300+(ic*20), 200);
+    }
+    graphics_Line(300, 199, 500, 199, graphics_editor_colors[WHITE]);
+    graphics_Line(300, 220, 500, 220, graphics_editor_colors[WHITE]);
+*/
+
     graphics_Help();
 
     graphics_RenderEnd();
@@ -246,43 +267,75 @@ void assembly_Run() {
 */
 }
 
-void files_OpenFIMG() {
-    // 1. open file
+DisplayStruct files_OpenFIMG(const char *file) {
     FILE *fd;
     unsigned char fbuf[400];
     int filePos = 0;
     int color = 0;
+    DisplayStruct img;
     
-    printf("Opening file...\n");
-    fd = fopen("images/CSW-MT5.C20", "r");
+    fd = fopen(file, "r");
     if (!fd) {
         printf("ERROR!\n");
     } else {
-        printf("SUCCESS!\n");
-        printf("Reading...\n");
         fread(fbuf, 400, 1, fd);
-        printf("Closing...\n");
 	    fclose(fd);
-        //printf("Results: ");
 
-        // load!
         for (int i=0; i<MAXX; i++) {
             for (int j=0; j<MAXY; j++) {
                 color = fbuf[filePos] - 176;
-                //printf("%d ", color);
-                data.display[i][j] = graphics_editor_colors[color];
-                // data.display[i][j].r = 0;
-                //data.display[i][j].g = 0;
-                //data.display[i][j].b = 0;
-                //data.display[i][j].a = 0;
+                img.image[i][j] = graphics_editor_colors[color];
                 filePos++;
             }
         }
     }
-    printf("\n");
-    // 2. read all data from the file
-    // 4. copy data to display
+    return img;
 }
+
+/*
+void try_LoadC20intoTexture() {
+    char *file = "images/CSW-MT5.C20";
+    const char *error = NULL;
+    SDL_Color imgdata[MAXX][MAXY];
+    SDL_Surface* surface;
+    Uint32 pixels;
+    int w, h;
+    Sint64 start;
+    
+    SDL_RWops *src = SDL_RWFromFile(file, "rb");
+    start = SDL_RWtell(src);
+    w = 20;
+    h = 20;
+    printf("launch SDL_CreateRGBSurface\n");
+    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 20, 20, 32, 0, 0, 0, 0);
+    printf("%d\n", sizeof *surface->pixels);
+    
+    for (pixels = (Uint32 *)surface->pixels; h > 0; --h ) {
+        printf("h = %d\n", h);
+        
+        if ( !SDL_RWread(src, pixels, 1, 1) ) {
+            printf("SDL_RWread error!\n");
+            error = "Couldn't read image data";
+            goto done;
+        }
+        
+        pixels += surface->pitch;
+    }
+    
+    done:
+     if ( error ) {
+         SDL_RWseek(src, start, RW_SEEK_SET);
+         if ( surface ) {
+             SDL_FreeSurface(surface);
+             surface = NULL;
+         }
+         //IMG_SetError("%s", error);
+         printf("%s\n", error);
+     }
+
+    printf("\n");
+}
+*/
 
 /*
 Procedure Files.OpenFIMG;{FOpenFIMG}

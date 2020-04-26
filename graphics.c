@@ -102,6 +102,11 @@ bool graphics_Init() {
 				success = false;
 			}
 
+            int imgFlags = IMG_INIT_PNG;
+            if (!(IMG_Init(IMG_INIT_PNG)&imgFlags)) {
+                printf("SDL IMG_Init error!\n");
+            }
+
              //Initialize SDL_ttf
 			if( TTF_Init() == -1 )
 			{
@@ -179,6 +184,17 @@ void graphics_RenderTextureAdvanced( int x, int y, SDL_Rect* clip, double angle,
 
 	//Render to screen
 	SDL_RenderCopyEx( graphics.gRenderer, graphics.mTexture, clip, &renderQuad, angle, center, flip );
+}
+
+SDL_Texture* graphics_LoadFromPNG(const char* file) {
+    SDL_Surface * image = IMG_Load(file);
+    SDL_Texture * texture = SDL_CreateTextureFromSurface(graphics.gRenderer, image);
+    return texture;
+}
+
+void graphics_RenderLoadedTexture(SDL_Texture* texture, int x, int y, int width, int height) {
+    SDL_Rect dstRect = { x, y, width, height };
+    SDL_RenderCopy(graphics.gRenderer, texture, NULL, &dstRect);
 }
 
 void graphics_RenderTexture(int x, int y) {
@@ -399,6 +415,14 @@ void graphics_DrawAsReal(SDL_Color *display) { // {GDrawAsReal}
     for (int rx = 0; rx < MAXX; rx++) {
 		for (int ry = 0; ry < MAXY; ry++){
 			graphics_PutPixel(rx + 400, ry + 5, *((display + rx * MAXY) + ry));
+        }
+    }
+}
+
+void graphics_DrawAsRealAtXY(SDL_Color *display, int x, int y) { // {GDrawAsReal}
+    for (int rx = 0; rx < MAXX; rx++) {
+		for (int ry = 0; ry < MAXY; ry++){
+			graphics_PutPixel(rx + x, ry + y, *((display + rx * MAXY) + ry));
         }
     }
 }
