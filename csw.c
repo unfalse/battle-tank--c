@@ -1,6 +1,8 @@
 #include "includes.h"
 #include "csw.h"
+
 #define csw_MAXIMUM_ACCELERATION 20
+#define csw_CSWSPEED 0
 
 void csw_move(struct CSWs * csw, int d);
 void player_draw(struct CSWs * csw);
@@ -18,6 +20,8 @@ int getDirOpposites(int d) {
 void player_setDirectionAndAddAccel(struct CSWs * csw, int d, double accel) {
     int dirOpposite = csw->inertiaDirections[getDirOpposites(d)];
     csw->d = d;
+//     printf("setDirectionAndAddAccel!\n");
+//     printf("iD = %f\n", csw->inertiaDirections[2]);
     if (dirOpposite > 0) {
         csw->inertiaDirections[getDirOpposites(d)] -= accel;
         if (dirOpposite < 0) {
@@ -79,8 +83,42 @@ void player_draw(struct CSWs * csw) {
      graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
 }
 
+int *base_getVXY(int d) {
+    //int result[2];
+    int *result = malloc(2);
+    result[0] = 0; result[1] = 0;
+    if (d == 0) {
+        result[0] = 1; result[1] = 0;
+    }
+    if (d == 1) {
+        result[0] = 0; result[1] = 1;
+    }
+    if (d == 2) {
+        result[0] = -1; result[1] = 0;
+    }
+    if (d == 3) {
+        result[0] = 0; result[1] = -1;
+    }
+    return result;
+}
+
 void csw_move(struct CSWs * csw, int d) {
+    int *nvxy = base_getVXY(d);
+    double acceleration = csw_CSWSPEED + csw->inertiaDirections[d];
+    // printf("nvxy = { %d, %d }\n", nvxy[0], nvxy[1]);
     
+    double ux = nvxy[0] * acceleration;
+    double uy = nvxy[1] * acceleration;
+    
+    // TODO: get ship dimensions by current direction
+    int width = 20-1, height = 20-1;
+    
+    //if (csw.x + ux
+    
+    csw->x = csw->x + (int)ux;
+    csw->y = csw->y + (int)uy;
+    
+    free(nvxy);
 }
 
 void csw_inertia(struct CSWs * csw) {

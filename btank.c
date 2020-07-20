@@ -133,11 +133,11 @@ void assembly_Init() {
     assembly_SetKeyboardCallbacks();
 
     initPLAYER(&player, 10, 10);
-    initCPU(&cpu, 20, 20);
+//     initCPU(&cpu, 20, 20);
     
-    for(int cpuCnt = 0; cpuCnt < CPUSMAX; cpuCnt++) {
-        initCPU(&cpuArr[cpuCnt], 0, 0);
-    }
+//     for(int cpuCnt = 0; cpuCnt < CPUSMAX; cpuCnt++) {
+//         initCPU(&cpuArr[cpuCnt], 0, 0);
+//     }
     
     //Start counting frames per second
 	settings.passedFrames = 0;
@@ -166,6 +166,8 @@ void assembly_GameLoop(SDL_Event event) {
 		avgFPS = 0;
 	}
 
+	player_detectMovement();
+	
 	player.update(&player);
 	
     graphics_RenderStart();
