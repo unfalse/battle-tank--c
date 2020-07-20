@@ -100,6 +100,29 @@ void assembly_SetKeyboardCallbacks() {
     keyboard_Callbacks.esc_key = &esc_key;
 }
 
+void player_detectMovement() {
+    double ACCEL = 0.3;
+    if (leftPressed == 1) {
+        // d=2
+        // player.x--;
+        player.setDirectionAndAddAccel(&player, 2, ACCEL);
+    }
+    if (upPressed == 1) {
+        // d=3
+        // player.y--;
+        player.setDirectionAndAddAccel(&player, 3, ACCEL);
+    }
+    if (rightPressed == 1) {
+        // d=0
+        // player.x++;
+        player.setDirectionAndAddAccel(&player, 0, ACCEL);
+    }
+    if (downPressed == 1) {
+        // d=1
+        // player.y++;
+        player.setDirectionAndAddAccel(&player, 1, ACCEL);
+    }   
+}
 
 void assembly_Init() {
     bool successInit = graphics_Init();
@@ -109,23 +132,11 @@ void assembly_Init() {
 //    assembly_ClearDisplay();
     assembly_SetKeyboardCallbacks();
 
-    player.x = 10;
-    player.y = 10;
-    player.life = 100;
-    player.inertiaTimerIsRunning = 0;
-    player.texture = graphics_LoadFromPNG("images/csw-mt9.png");
-    player.update = &player_update;
+    initPLAYER(&player, 10, 10);
+    initCPU(&cpu, 20, 20);
     
-    cpu.x = 0;
-    cpu.y = 0;
-    cpu.life = 100;
-    cpu.texture = graphics_LoadFromPNG("images/csw-mt5.png");
-//    cpu.draw = &cpu_draw;
-
     for(int cpuCnt = 0; cpuCnt < CPUSMAX; cpuCnt++) {
-        cpuArr[cpuCnt].x = 0;
-        cpuArr[cpuCnt].y = 0;
-        cpuArr[cpuCnt].life = 100;
+        initCPU(&cpuArr[cpuCnt], 0, 0);
     }
     
     //Start counting frames per second
@@ -134,16 +145,16 @@ void assembly_Init() {
 }
 
 void assembly_TanksMove() {
-    int dx = myrandom(-100, 100);
-    int dy = myrandom(-100, 12);
-    cpu.x = dx;
-    cpu.y = dy;
+//     int dx = myrandom(-100, 100);
+//     int dy = myrandom(-100, 12);
+//     cpu.x = dx;
+//     cpu.y = dy;
     //cpu_draw(cpu.x, cpu.y, cpu.texture);
     // graphics_RenderLoadedTexture(cpu.texture, 300+dx, 200+dy, 20, 20);
     for(int cpuCnt=0; cpuCnt<CPUSMAX; cpuCnt++) {
         cpuArr[cpuCnt].x = myrandom(-200, 200);
         cpuArr[cpuCnt].y = myrandom(-200, 200);
-        cpu_draw(cpuArr[cpuCnt].x, cpuArr[cpuCnt].y, cpu.texture);
+        cpuArr[cpuCnt].draw(&cpuArr[cpuCnt]);
     }
 }
 
@@ -155,16 +166,15 @@ void assembly_GameLoop(SDL_Event event) {
 		avgFPS = 0;
 	}
 
-	player.update();
+	player.update(&player);
 	
     graphics_RenderStart();
 
     graphics_ShowFPS(avgFPS);
     
-    graphics_RenderLoadedTexture(player.texture, 300+player.x, 200+player.y, 20, 20);
+    player.draw(&player);
 //    assembly_TanksMove();
-    //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
- 
+   //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
     
     graphics_RenderEnd();
     ++settings.passedFrames;
