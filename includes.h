@@ -54,7 +54,7 @@ void graphics_RenderStart();
 void graphics_RenderEnd();
 void graphics_Quit();
 
-SDL_Color graphics_editor_colors[COLORMAX];
+extern SDL_Color graphics_editor_colors[COLORMAX];
 
 // Events
 
@@ -70,11 +70,15 @@ int ltimer_getCapTimerTicks();
 
 // Keyboard
 
-struct callbacks {
+extern struct callbacks {
     void (*left_key)();
     void (*right_key)();
     void (*up_key)();
     void (*down_key)();
+    void (*left_keyup)();
+    void (*right_keyup)();
+    void (*up_keyup)();
+    void (*down_keyup)();
     void (*pgup_key)();
     void (*pgdn_key)();
     void (*space_key)();
@@ -105,3 +109,4 @@ typedef struct LTimers {
     bool mPaused;
     bool mStarted;
 } LTimer;
+

@@ -26,6 +26,9 @@ void space_key();
 void pgup_key();
 void f3_key();
 
+struct callbacks keyboard_Callbacks;
+
+SDL_Color graphics_editor_colors[COLORMAX];
 int rx, ry;
 
 struct Data {

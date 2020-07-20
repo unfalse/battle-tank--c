@@ -7,15 +7,15 @@
 //#include <sys/stat.h>
 //#include <fcntl.h>
 //#include <unistd.h>
-#include "includes.h"
 
-typedef struct CSWs {
-    int x;
-    int y;
-    int life;
-    SDL_Texture* texture;
-    void (*init)(int x, int y);
-} CSW;
+#include "includes.h"
+#include "csw.h"
+
+#define CPUSMAX 100
+
+struct callbacks keyboard_Callbacks;
+
+SDL_Color graphics_editor_colors[COLORMAX];
 
 struct Settings {
     int passedFrames;
@@ -27,10 +27,53 @@ void assembly_SetKeyboardCallbacks();
 void assembly_SetColors();
 int myrandom(int min, int max);
 
+CSW player;
+CSW cpu, cpuArr[CPUSMAX];
+
 //generate number in range [min,max)
 int myrandom(int min, int max){
     int number = min + rand() % (max - min);
     return number; 
+}
+
+int leftPressed = 0;
+int rightPressed = 0;
+int upPressed = 0;
+int downPressed = 0;
+void left_key() {
+    // player.x--;
+    leftPressed = 1;
+}
+
+void left_keyup() {
+    leftPressed = 0;
+}
+
+
+void right_key() {
+    rightPressed = 1;
+}
+
+void right_keyup() {
+    rightPressed = 0;
+}
+
+
+void up_key() {
+    upPressed = 1;
+}
+
+void up_keyup() {
+    upPressed = 0;
+}
+
+
+void down_key() {
+    downPressed = 1;
+}
+
+void down_keyup() {
+    downPressed = 0;
 }
 
 void esc_key() {
@@ -38,19 +81,25 @@ void esc_key() {
 }
 
 void assembly_SetKeyboardCallbacks() {
-//    keyboard_Callbacks.left_key = &left_key;
-//    keyboard_Callbacks.right_key = &right_key;
-//    keyboard_Callbacks.up_key = &up_key;
-//    keyboard_Callbacks.down_key = &down_key;
-//    keyboard_Callbacks.space_key = &space_key;
+    keyboard_Callbacks.left_key = &left_key;
+    keyboard_Callbacks.left_keyup = &left_keyup;
+
+    keyboard_Callbacks.right_key = &right_key;
+    keyboard_Callbacks.right_keyup = &right_keyup;
+
+    keyboard_Callbacks.up_key = &up_key;
+    keyboard_Callbacks.up_keyup = &up_keyup;
+
+    keyboard_Callbacks.down_key = &down_key;
+    keyboard_Callbacks.down_keyup = &down_keyup;
+    
+    //    keyboard_Callbacks.space_key = &space_key;
     //keyboard_Callbacks.pgup_key = &pgup_key;
     //keyboard_Callbacks.pgdn_key = &pgdn_key;
     // keyboard_Callbacks.f3_key = &f3_key;
     keyboard_Callbacks.esc_key = &esc_key;
 }
 
-CSW player;
-CSW cpu;
 
 void assembly_Init() {
     bool successInit = graphics_Init();
@@ -63,23 +112,39 @@ void assembly_Init() {
     player.x = 10;
     player.y = 10;
     player.life = 100;
-    player.texture = graphics_LoadFromPNG("images/csw-mt5.png");
-
+    player.inertiaTimerIsRunning = 0;
+    player.texture = graphics_LoadFromPNG("images/csw-mt9.png");
+    player.update = &player_update;
+    
     cpu.x = 0;
     cpu.y = 0;
     cpu.life = 100;
-    cpu.texture = graphics_LoadFromPNG("images/csw-mt9.png");
+    cpu.texture = graphics_LoadFromPNG("images/csw-mt5.png");
+//    cpu.draw = &cpu_draw;
 
+    for(int cpuCnt = 0; cpuCnt < CPUSMAX; cpuCnt++) {
+        cpuArr[cpuCnt].x = 0;
+        cpuArr[cpuCnt].y = 0;
+        cpuArr[cpuCnt].life = 100;
+    }
+    
     //Start counting frames per second
 	settings.passedFrames = 0;
 	ltimer_Start();
 }
 
-
 void assembly_TanksMove() {
-    int dx = myrandom(-10, 100);
+    int dx = myrandom(-100, 100);
     int dy = myrandom(-100, 12);
-    graphics_RenderLoadedTexture(cpu.texture, 300+dx, 200+dy, 20, 20);
+    cpu.x = dx;
+    cpu.y = dy;
+    //cpu_draw(cpu.x, cpu.y, cpu.texture);
+    // graphics_RenderLoadedTexture(cpu.texture, 300+dx, 200+dy, 20, 20);
+    for(int cpuCnt=0; cpuCnt<CPUSMAX; cpuCnt++) {
+        cpuArr[cpuCnt].x = myrandom(-200, 200);
+        cpuArr[cpuCnt].y = myrandom(-200, 200);
+        cpu_draw(cpuArr[cpuCnt].x, cpuArr[cpuCnt].y, cpu.texture);
+    }
 }
 
 void assembly_GameLoop(SDL_Event event) {
@@ -89,13 +154,17 @@ void assembly_GameLoop(SDL_Event event) {
 	{
 		avgFPS = 0;
 	}
-    
+
+	player.update();
+	
     graphics_RenderStart();
 
     graphics_ShowFPS(avgFPS);
     
-    assembly_TanksMove();
+    graphics_RenderLoadedTexture(player.texture, 300+player.x, 200+player.y, 20, 20);
+//    assembly_TanksMove();
     //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
+ 
     
     graphics_RenderEnd();
     ++settings.passedFrames;
@@ -132,8 +201,6 @@ void assembly_SetColors() {
     printf("sizeof colors: ");
     printf("%d\n", sizeof *graphics_editor_colors);
 }
-
-
 
 int main() {
     assembly_Init();

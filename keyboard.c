@@ -26,6 +26,17 @@ void keyboard_KeyEcho(SDL_Event event) {
                 break;
         }
     }
+    
+    if (event.type == SDL_KEYUP) {
+        switch(event.key.keysym.sym) {
+            case SDLK_LEFT:     keyboard_Callbacks.left_keyup(); break;
+            case SDLK_RIGHT:    keyboard_Callbacks.right_keyup(); break;
+            case SDLK_UP:       keyboard_Callbacks.up_keyup(); break;
+            case SDLK_DOWN:     keyboard_Callbacks.down_keyup(); break;
+            default:
+                break;
+        }
+    }
 
     return ;
 }
