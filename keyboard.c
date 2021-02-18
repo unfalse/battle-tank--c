@@ -3,6 +3,8 @@
 #include <SDL2/SDL.h>
 #include "includes.h"
 
+//struct callbacks keyboard_Callbacks;
+
 void keyboard_KeyEcho(SDL_Event event) {
 
     if (event.type == SDL_KEYDOWN) {

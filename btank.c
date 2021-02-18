@@ -9,6 +9,10 @@
 //#include <unistd.h>
 #include "includes.h"
 
+SDL_Color graphics_editor_colors[COLORMAX];
+
+struct callbacks keyboard_Callbacks;
+
 typedef struct CSWs {
     int x;
     int y;

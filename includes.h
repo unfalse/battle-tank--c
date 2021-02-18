@@ -1,3 +1,7 @@
+//#pragma once
+//#ifndef INCLUDES_H_
+//#define INCLUDES_H_
+
 #include <stdbool.h>
 
 #define COLORMAX 16
@@ -54,7 +58,7 @@ void graphics_RenderStart();
 void graphics_RenderEnd();
 void graphics_Quit();
 
-SDL_Color graphics_editor_colors[COLORMAX];
+extern SDL_Color graphics_editor_colors[COLORMAX];
 
 // Events
 
@@ -86,7 +90,9 @@ struct callbacks {
     void (*f4_key)();
     void (*f5_key)();
     void (*f6_key)();
-} keyboard_Callbacks; 
+};
+
+extern struct callbacks keyboard_Callbacks;
 
 void keyboard_KeyEcho(SDL_Event event);
 
@@ -105,3 +111,5 @@ typedef struct LTimers {
     bool mPaused;
     bool mStarted;
 } LTimer;
+
+//#endif

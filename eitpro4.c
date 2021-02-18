@@ -28,6 +28,29 @@ void f3_key();
 
 int rx, ry;
 
+SDL_Color graphics_editor_colors[COLORMAX];
+
+struct callbacks keyboard_Callbacks;
+/*
+struct callbacks {
+    void (*left_key)();
+    void (*right_key)();
+    void (*up_key)();
+    void (*down_key)();
+    void (*pgup_key)();
+    void (*pgdn_key)();
+    void (*space_key)();
+    void (*r_key)();
+    void (*f_key)();
+    void (*esc_key)();
+    void (*f3_key)();
+    void (*f2_key)();
+    void (*f4_key)();
+    void (*f5_key)();
+    void (*f6_key)();
+} keyboard_Callbacks; 
+*/
+
 struct Data {
 	char bt;
 	bool isfls;				// { Выбран ли режим управления файлами		}
