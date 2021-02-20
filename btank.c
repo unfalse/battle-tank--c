@@ -158,14 +158,23 @@ void assembly_TanksMove() {
     }
 }
 
-void assembly_GameLoop(SDL_Event event) {
+float assembly_CalculateFPS() {
 	//Calculate and correct fps
 	float avgFPS = settings.passedFrames / ( ltimer_GetTicks() / 1000.f );
 	if( avgFPS > 2000000 )
 	{
 		avgFPS = 0;
 	}
+    return avgFPS;
+}
 
+void assembly_IncreaseFPS() {
+    ++settings.passedFrames;
+}
+
+void assembly_GameLoop(SDL_Event event) {
+    float avgFPS = assembly_CalculateFPS();
+    
 	player_detectMovement();
 	
 	player.update(&player);
@@ -179,7 +188,7 @@ void assembly_GameLoop(SDL_Event event) {
    //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
     
     graphics_RenderEnd();
-    ++settings.passedFrames;
+    assembly_IncreaseFPS();
 }
 
 void assembly_Run() {

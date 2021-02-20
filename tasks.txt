@@ -1,0 +1,5 @@
+Current task:
+    Port the logic code for user and cpu tanks from betamain.pas
+
+Tasks:
+    - port everything from js
