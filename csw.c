@@ -17,7 +17,7 @@ int getDirOpposites(int d) {
     return dirOpposites[d];
 }
 
-void player_setDirectionAndAddAccel(struct CSWs * csw, int d, double accel) {
+void player_setDirectionAndAddAccel(CSW * csw, int d, double accel) {
     int dirOpposite = csw->inertiaDirections[getDirOpposites(d)];
     csw->d = d;
 //     printf("setDirectionAndAddAccel!\n");
@@ -35,7 +35,7 @@ void player_setDirectionAndAddAccel(struct CSWs * csw, int d, double accel) {
     }
 }
 
-void initPLAYER(struct CSWs * csw, int x, int y) {
+void initPLAYER(CSW * csw, int x, int y) {
     csw->x = x;
     csw->y = y;
     csw->life = 100;
@@ -48,11 +48,11 @@ void initPLAYER(struct CSWs * csw, int x, int y) {
     csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
 }
 
-void csw_update(struct CSWs * csw) {
+void csw_update(CSW * csw) {
     
 }
 
-void initCPU(struct CSWs * csw, int x, int y) {
+void initCPU(CSW * csw, int x, int y) {
     csw->x = x;
     csw->y = y;
     csw->life = 100;
@@ -63,23 +63,23 @@ void initCPU(struct CSWs * csw, int x, int y) {
     // csw.setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
 }
 
-void player_update(struct CSWs * csw) {
+void player_update(CSW * csw) {
     csw->inertia(csw);
 }
 
 
-double csw_getDirSum(struct CSWs * csw) {
+double csw_getDirSum(CSW * csw) {
     return csw->inertiaDirections[0] +
         csw->inertiaDirections[1] +
         csw->inertiaDirections[2] +
         csw->inertiaDirections[3];
 }
 
-void csw_draw(struct CSWs * csw) {
+void csw_draw(CSW * csw) {
      graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
 }
 
-void player_draw(struct CSWs * csw) {
+void player_draw(CSW * csw) {
      graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
 }
 
@@ -102,7 +102,7 @@ int *base_getVXY(int d) {
     return result;
 }
 
-void csw_move(struct CSWs * csw, int d) {
+void csw_move(CSW * csw, int d) {
     int *nvxy = base_getVXY(d);
     double acceleration = csw_CSWSPEED + csw->inertiaDirections[d];
     // printf("nvxy = { %d, %d }\n", nvxy[0], nvxy[1]);
@@ -121,7 +121,7 @@ void csw_move(struct CSWs * csw, int d) {
     free(nvxy);
 }
 
-void csw_inertia(struct CSWs * csw) {
+void csw_inertia(CSW * csw) {
     if (csw_getDirSum(csw) > 0 /*&& csw.inertiaTimerIsRunning == 1*/) {
         for (int d = 0; d < 4; d++) {
             if (csw->inertiaDirections[d] > 0) {

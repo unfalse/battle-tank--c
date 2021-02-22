@@ -18,7 +18,6 @@ void graphics_PutPixels(SDL_Point*, SDL_Color, int);
 void graphics_SetPalette();
 void graphics_Help();
 void graphics_SetColor(int);
-void graphics_ShowFPS(float);
 Uint32 graphics_GetPixel(SDL_Surface*, int, int);
 
 //Screen dimension constants

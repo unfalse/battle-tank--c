@@ -4,7 +4,7 @@
 #include "includes.h"
 
 LTimer capTimer;
-const int SCREEN_FPS = 30;
+const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 bool quit = false;
@@ -16,12 +16,12 @@ void events_Quit() {
 void events_Loop(void (*main_loop)(), void (*key_echo)()) {
 
     SDL_Event event;
-
+    
     while (!quit) {
 
         //Start cap timer
-        ltimer_Start(capTimer);
-                        
+        ltimer_Start(&capTimer);
+
         // SDL_WaitEvent(&event);
 
         while( SDL_PollEvent(&event) != 0) {
@@ -41,9 +41,13 @@ void events_Loop(void (*main_loop)(), void (*key_echo)()) {
 
         //SDL_Delay(100);
         //If frame finished early
-        int frameTicks = ltimer_GetTicks(capTimer);
+//        printf("\nStarted?: %d", capTimer.mStarted);
+        int frameTicks = ltimer_GetTicks(&capTimer);
+        // printf("\nFPS: %d", frameTicks);
         if( frameTicks < SCREEN_TICKS_PER_FRAME )
         {
+            //printf("\nFPS: %d", frameTicks);
+            //printf("\nWait: %d", SCREEN_TICKS_PER_FRAME - frameTicks); 
             //Wait remaining time
             SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
         }

@@ -62,12 +62,24 @@ extern SDL_Color graphics_editor_colors[COLORMAX];
 void events_Loop(void (*main_loop)(), void (*key_echo)());
 void events_Quit();
 
+typedef struct LTimers {
+    //The clock time when the timer started
+    Uint32 mStartTicks;
+
+    //The ticks stored when the timer was paused
+    Uint32 mPausedTicks;
+
+    //The timer status
+    bool mPaused;
+    bool mStarted;
+} LTimer;
+
 // LTimer
 //Gets the timer's time
-Uint32 ltimer_GetTicks();
-void ltimer_Start();
-void capTimer_Start();
-int ltimer_getCapTimerTicks();
+Uint32 ltimer_GetTicks(LTimer * timer);
+void ltimer_Start(LTimer * timer);
+//void capTimer_Start();
+//int ltimer_getCapTimerTicks();
 
 // Keyboard
 
@@ -93,21 +105,10 @@ extern struct callbacks {
     void (*f6_key)();
 } keyboard_Callbacks; 
 
+
 void keyboard_KeyEcho(SDL_Event event);
 
 typedef struct DisplayStructs {
     SDL_Color image[MAXX][MAXY];
 } DisplayStruct;
-
-typedef struct LTimers {
-    //The clock time when the timer started
-    Uint32 mStartTicks;
-
-    //The ticks stored when the timer was paused
-    Uint32 mPausedTicks;
-
-    //The timer status
-    bool mPaused;
-    bool mStarted;
-} LTimer;
 

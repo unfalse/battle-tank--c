@@ -3,3 +3,4 @@ Current task:
 
 Tasks:
     - port everything from js
+    + make timer work!

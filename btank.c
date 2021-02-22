@@ -30,6 +30,8 @@ int myrandom(int min, int max);
 CSW player;
 CSW cpu, cpuArr[CPUSMAX];
 
+LTimer mainTimer;
+
 //generate number in range [min,max)
 int myrandom(int min, int max){
     int number = min + rand() % (max - min);
@@ -141,7 +143,7 @@ void assembly_Init() {
     
     //Start counting frames per second
 	settings.passedFrames = 0;
-	ltimer_Start();
+	ltimer_Start(&mainTimer);
 }
 
 void assembly_TanksMove() {
@@ -160,7 +162,7 @@ void assembly_TanksMove() {
 
 float assembly_CalculateFPS() {
 	//Calculate and correct fps
-	float avgFPS = settings.passedFrames / ( ltimer_GetTicks() / 1000.f );
+	float avgFPS = settings.passedFrames / ( ltimer_GetTicks(&mainTimer) / 1000.f );
 	if( avgFPS > 2000000 )
 	{
 		avgFPS = 0;
@@ -181,14 +183,17 @@ void assembly_GameLoop(SDL_Event event) {
 	
     graphics_RenderStart();
 
-    graphics_ShowFPS(avgFPS);
-    
     player.draw(&player);
 //    assembly_TanksMove();
    //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
+
+    graphics_ShowFPS(avgFPS);
+
+    //graphics_ShowFPS(ltimer_GetTicks(mainTimer));
     
     graphics_RenderEnd();
     assembly_IncreaseFPS();
+    // printf("\nFrame: %d", ltimer_GetTicks(mainTimer));
 }
 
 void assembly_Run() {
