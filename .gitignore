@@ -3,6 +3,7 @@
 *.o
 *.h~
 *.sh~
+*.txt~
 tests
 eitpro4
 btank
