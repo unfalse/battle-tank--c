@@ -8,6 +8,8 @@ void csw_move(struct CSWs * csw, int d);
 void player_draw(struct CSWs * csw);
 void csw_inertia(struct CSWs * csw);
 
+int *base_getVXY(int d);
+
 int getDirOpposites(int d) {
     int dirOpposites[4];
     dirOpposites[0] = 2;
@@ -53,17 +55,20 @@ bool csw_CheckCSW(int x, int y) {
 }
 
 void csw_updatePV(CSW * csw) {
+    printf("\ninside csw_updatePV!");
     if (csw->life <= 0) {
         csw->life = 0;
     } else {
-        if (csw->iam == USER) {
-            int vx = (-(csw->d >> 1) | 1) * ((csw->d & 1) ^ 1);
-            int vy = (-(csw->d >> 1) | 1) * ((csw->d & 1) & 1);
+        //if (csw->iam == USER) {
+            printf("\niam=%d, d=%d", csw->iam, csw->d);
+            int *nvxy = base_getVXY(csw->d);
+            int vx = nvxy[0];
+            int vy = nvxy[1];
             if ((csw->x + vx) > 20 || (csw->x + vx < 1)) {
                 vx = 0;
             }
             if ((csw->y + vy) > 20 || (csw->y + vy < 1)) {
-                vx = 0;
+                vy = 0;
             }
             if(!(vx == 0 && vy == 0)) {
                 if (csw_CheckCSW(csw->x + vx, csw->y + vy) == true) {
@@ -73,7 +78,7 @@ void csw_updatePV(CSW * csw) {
             }
             csw->x = csw->x + vx;
             csw->y = csw->y + vy;
-        }
+        //}
     }
     csw->draw(csw);
 }
@@ -87,18 +92,21 @@ void csw_fire(CSW * csw) {
 }
 
 void initPLAYER(CSW * csw, int x, int y) {
+    csw->d = 5;
+    csw->iam = USER;
     csw->x = x;
     csw->y = y;
     csw->life = 100;
     csw->inertiaTimerIsRunning = 0;
     csw->texture = graphics_LoadFromPNG("images/csw-mt9.png");
 
+    csw->inertia = &csw_inertia;
+    csw->draw = &player_draw;
+    csw->move = &csw_move;
+    csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
+    
     if (PASCAL_VERSION == 0) {
         csw->update = &player_update;
-        csw->inertia = &csw_inertia;
-        csw->draw = &player_draw;
-        csw->move = &csw_move;
-        csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
     } else {
         csw->update = &csw_updatePV;
         csw->setDirectionAndAddAccel = &csw_setDirectionPV;
@@ -107,6 +115,8 @@ void initPLAYER(CSW * csw, int x, int y) {
 }
 
 void initCPU(CSW * csw, int x, int y) {
+    csw->iam = COMPUTER;
+    csw->d = 5;
     csw->x = x;
     csw->y = y;
     csw->life = 100;
@@ -119,9 +129,11 @@ void initCPU(CSW * csw, int x, int y) {
     if (PASCAL_VERSION == 0) {
         csw->update = &csw_update;
         csw->fire = &csw_fire;
+//        csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
     } else {
         csw->update = &csw_updatePV;
         csw->fire = &csw_firePV;
+        csw->setDirectionAndAddAccel = &csw_setDirectionPV;
     }
     cswArr[1] = csw;
 }

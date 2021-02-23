@@ -26,6 +26,10 @@ void assembly_ClearDisplay(void);
 void assembly_SetKeyboardCallbacks();
 void assembly_SetColors();
 int myrandom(int min, int max);
+
+void assembly_UserMovePV();
+void assembly_GameLoopPV(SDL_Event event);
+
 int d;
 
 CSW player;
@@ -129,28 +133,9 @@ void player_detectMovement() {
 
 void player_detectMovementPV() {
     if ((leftPressed + upPressed + rightPressed + downPressed) == 0) {
-        d = 5;
+        player.setDirectionAndAddAccel(&player, 5, 0);
     }
-    if (leftPressed == 1) {
-        d=2;
-        // player.x--;
-//        player.setDirectionAndAddAccel(&player, 2, ACCEL);
-    }
-    if (upPressed == 1) {
-        d=3;
-        // player.y--;
-//        player.setDirectionAndAddAccel(&player, 3, ACCEL);
-    }
-    if (rightPressed == 1) {
-        d=0;
-        // player.x++;
-//        player.setDirectionAndAddAccel(&player, 0, ACCEL);
-    }
-    if (downPressed == 1) {
-        d=1;
-        // player.y++;
-//        player.setDirectionAndAddAccel(&player, 1, ACCEL);
-    }   
+    player_detectMovement();
 }
 
 void assembly_Init() {
@@ -161,7 +146,10 @@ void assembly_Init() {
 //    assembly_ClearDisplay();
     assembly_SetKeyboardCallbacks();
 
+    printf("\ninitPlayer?");
     initPLAYER(&player, 10, 10);
+
+    printf("\ninitCPU?");
     initCPU(&cpu, 20, 20);
     
 //     for(int cpuCnt = 0; cpuCnt < CPUSMAX; cpuCnt++) {
@@ -171,6 +159,7 @@ void assembly_Init() {
     //Start counting frames per second
 	settings.passedFrames = 0;
 	ltimer_Start(&mainTimer);
+    printf("\nmainTimer started?");
 }
 
 void assembly_TanksMove() {
@@ -224,14 +213,18 @@ void assembly_GameLoop(SDL_Event event) {
 }
 
 void assembly_UserMovePV() {
-    printf("\n1");
+
+    printf("\nUserMovePV inside!");
     player.update(&player);
+
     cpu.fire(&cpu);
     
-    cpu.d = myrandom(0, 3);
+    // cpu.d = myrandom(0, 3);
+    cpu.setDirectionAndAddAccel(&cpu, myrandom(0, 4), 0);
+    printf("\ncpu.d = %d", cpu.d);
     cpu.update(&cpu);
-    printf("\n2");
-/*
+
+    /*
     randomize;
 	if keypressed then begin
 		key:=readkey;	ms:=Dkey(key);
@@ -251,7 +244,7 @@ void assembly_UserMovePV() {
 void assembly_GameLoopPV(SDL_Event event) {
     float avgFPS = assembly_CalculateFPS();
     
-//	player_detectMovement();
+	player_detectMovementPV();
 	
 //	player.update(&player);
 	
@@ -261,6 +254,7 @@ void assembly_GameLoopPV(SDL_Event event) {
 //    assembly_TanksMove();
    //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
 
+    printf("\nbefore UserMovePV!");
     assembly_UserMovePV();
 
     graphics_ShowFPS(avgFPS);
@@ -273,6 +267,7 @@ void assembly_GameLoopPV(SDL_Event event) {
 }
 
 void assembly_RunPV() {
+    printf("\nRunPV!");
     events_Loop(assembly_GameLoopPV, keyboard_KeyEcho);
 }
 
