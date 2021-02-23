@@ -17,6 +17,8 @@ int getDirOpposites(int d) {
     return dirOpposites[d];
 }
 
+CSW *cswArr[2];
+
 void player_setDirectionAndAddAccel(CSW * csw, int d, double accel) {
     int dirOpposite = csw->inertiaDirections[getDirOpposites(d)];
     csw->d = d;
@@ -35,21 +37,73 @@ void player_setDirectionAndAddAccel(CSW * csw, int d, double accel) {
     }
 }
 
+void csw_setDirectionPV(CSW * csw, int d, double unused) {
+    csw->d = d;
+}
+
+bool csw_CheckCSW(int x, int y) {
+    int cnt = 0;
+    while(cnt < 2) {
+        if (cswArr[cnt]->x == x && cswArr[cnt]->y == y) {
+            return true;
+        }
+        cnt++;
+    }
+    return false;
+}
+
+void csw_updatePV(CSW * csw) {
+    if (csw->life <= 0) {
+        csw->life = 0;
+    } else {
+        if (csw->iam == USER) {
+            int vx = (-(csw->d >> 1) | 1) * ((csw->d & 1) ^ 1);
+            int vy = (-(csw->d >> 1) | 1) * ((csw->d & 1) & 1);
+            if ((csw->x + vx) > 20 || (csw->x + vx < 1)) {
+                vx = 0;
+            }
+            if ((csw->y + vy) > 20 || (csw->y + vy < 1)) {
+                vx = 0;
+            }
+            if(!(vx == 0 && vy == 0)) {
+                if (csw_CheckCSW(csw->x + vx, csw->y + vy) == true) {
+                    vx = 0;
+                    vy = 0;
+                }
+            }
+            csw->x = csw->x + vx;
+            csw->y = csw->y + vy;
+        }
+    }
+    csw->draw(csw);
+}
+
+void csw_firePV(CSW * csw) {
+
+}
+
+void csw_fire(CSW * csw) {
+
+}
+
 void initPLAYER(CSW * csw, int x, int y) {
     csw->x = x;
     csw->y = y;
     csw->life = 100;
     csw->inertiaTimerIsRunning = 0;
     csw->texture = graphics_LoadFromPNG("images/csw-mt9.png");
-    csw->update = &player_update;
-    csw->inertia = &csw_inertia;
-    csw->draw = &player_draw;
-    csw->move = &csw_move;
-    csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
-}
 
-void csw_update(CSW * csw) {
-    
+    if (PASCAL_VERSION == 0) {
+        csw->update = &player_update;
+        csw->inertia = &csw_inertia;
+        csw->draw = &player_draw;
+        csw->move = &csw_move;
+        csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
+    } else {
+        csw->update = &csw_updatePV;
+        csw->setDirectionAndAddAccel = &csw_setDirectionPV;
+    }
+    cswArr[0] = csw;
 }
 
 void initCPU(CSW * csw, int x, int y) {
@@ -58,15 +112,27 @@ void initCPU(CSW * csw, int x, int y) {
     csw->life = 100;
     csw->inertiaTimerIsRunning = 0;
     csw->texture = graphics_LoadFromPNG("images/csw-mt5.png");
-    csw->update = &csw_update;
+    
     csw->draw = &csw_draw;
     // csw.setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
+
+    if (PASCAL_VERSION == 0) {
+        csw->update = &csw_update;
+        csw->fire = &csw_fire;
+    } else {
+        csw->update = &csw_updatePV;
+        csw->fire = &csw_firePV;
+    }
+    cswArr[1] = csw;
+}
+
+void csw_update(CSW * csw) {
+    
 }
 
 void player_update(CSW * csw) {
     csw->inertia(csw);
 }
-
 
 double csw_getDirSum(CSW * csw) {
     return csw->inertiaDirections[0] +
@@ -76,11 +142,19 @@ double csw_getDirSum(CSW * csw) {
 }
 
 void csw_draw(CSW * csw) {
-     graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
+    if (PASCAL_VERSION == 0) {
+        graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
+    } else {
+        graphics_RenderLoadedTexture(csw->texture, 20 * csw->x + 20, 20 * csw->y + 20, 20, 20);
+    }
 }
 
 void player_draw(CSW * csw) {
-     graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
+    if (PASCAL_VERSION == 0) {
+        graphics_RenderLoadedTexture(csw->texture, 300+csw->x, 200+csw->y, 20, 20);
+    } else {
+        graphics_RenderLoadedTexture(csw->texture, 20 * csw->x + 20, 20 * csw->y + 20, 20, 20);
+    }
 }
 
 int *base_getVXY(int d) {

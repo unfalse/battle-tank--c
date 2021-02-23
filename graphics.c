@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+
 #include "includes.h"
 
 void graphics_Rectangle(int, int, int, int, SDL_Color);

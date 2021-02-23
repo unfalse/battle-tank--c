@@ -25,6 +25,8 @@
 #define YELLOW 14
 #define WHITE 15
 
+#define PASCAL_VERSION 1
+
 // Graphics
 
 bool graphics_Init(void);

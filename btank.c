@@ -26,6 +26,7 @@ void assembly_ClearDisplay(void);
 void assembly_SetKeyboardCallbacks();
 void assembly_SetColors();
 int myrandom(int min, int max);
+int d;
 
 CSW player;
 CSW cpu, cpuArr[CPUSMAX];
@@ -126,6 +127,32 @@ void player_detectMovement() {
     }   
 }
 
+void player_detectMovementPV() {
+    if ((leftPressed + upPressed + rightPressed + downPressed) == 0) {
+        d = 5;
+    }
+    if (leftPressed == 1) {
+        d=2;
+        // player.x--;
+//        player.setDirectionAndAddAccel(&player, 2, ACCEL);
+    }
+    if (upPressed == 1) {
+        d=3;
+        // player.y--;
+//        player.setDirectionAndAddAccel(&player, 3, ACCEL);
+    }
+    if (rightPressed == 1) {
+        d=0;
+        // player.x++;
+//        player.setDirectionAndAddAccel(&player, 0, ACCEL);
+    }
+    if (downPressed == 1) {
+        d=1;
+        // player.y++;
+//        player.setDirectionAndAddAccel(&player, 1, ACCEL);
+    }   
+}
+
 void assembly_Init() {
     bool successInit = graphics_Init();
     srand(time(NULL));
@@ -135,7 +162,7 @@ void assembly_Init() {
     assembly_SetKeyboardCallbacks();
 
     initPLAYER(&player, 10, 10);
-//     initCPU(&cpu, 20, 20);
+    initCPU(&cpu, 20, 20);
     
 //     for(int cpuCnt = 0; cpuCnt < CPUSMAX; cpuCnt++) {
 //         initCPU(&cpuArr[cpuCnt], 0, 0);
@@ -196,6 +223,59 @@ void assembly_GameLoop(SDL_Event event) {
     // printf("\nFrame: %d", ltimer_GetTicks(mainTimer));
 }
 
+void assembly_UserMovePV() {
+    printf("\n1");
+    player.update(&player);
+    cpu.fire(&cpu);
+    
+    cpu.d = myrandom(0, 3);
+    cpu.update(&cpu);
+    printf("\n2");
+/*
+    randomize;
+	if keypressed then begin
+		key:=readkey;	ms:=Dkey(key);
+		if ms=5 then else
+		if ms=4 then beg^.cur.fire else move:=true;
+		key:=#0;
+	end;
+
+	beg^.cur.update(ms,move);
+	mov:=true;	mts:=random(4);
+	pend^.cur.fire;
+	pend^.cur.update(mts,mov);
+*/
+    
+}
+
+void assembly_GameLoopPV(SDL_Event event) {
+    float avgFPS = assembly_CalculateFPS();
+    
+//	player_detectMovement();
+	
+//	player.update(&player);
+	
+    graphics_RenderStart();
+
+//    player.draw(&player);
+//    assembly_TanksMove();
+   //graphics_RenderLoadedTexture(csw_mt5, 300, 200, 20, 20);
+
+    assembly_UserMovePV();
+
+    graphics_ShowFPS(avgFPS);
+
+    //graphics_ShowFPS(ltimer_GetTicks(mainTimer));
+    
+    graphics_RenderEnd();
+    assembly_IncreaseFPS();
+    // printf("\nFrame: %d", ltimer_GetTicks(mainTimer));
+}
+
+void assembly_RunPV() {
+    events_Loop(assembly_GameLoopPV, keyboard_KeyEcho);
+}
+
 void assembly_Run() {
     events_Loop(assembly_GameLoop, keyboard_KeyEcho);
 }
@@ -230,7 +310,12 @@ void assembly_SetColors() {
 
 int main() {
     assembly_Init();
-    assembly_Run();
+
+    if (PASCAL_VERSION == 1) {
+        assembly_RunPV();
+    } else {
+        assembly_Run();
+    }
 
     printf("graphics_Quit...\n");
     graphics_Quit();
