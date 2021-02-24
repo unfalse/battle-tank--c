@@ -3,15 +3,31 @@
 #define COMPUTER 0
 #define USER 1
 
+typedef struct BulletPVs {
+    int x;
+    int y;
+    bool isFire;
+    int d;
+    int parent;
+    void (*init)(struct BulletPVs * bullet);
+    void (*draw)(struct BulletPVs * bullet);
+    void (*fly)(struct BulletPVs * bullet);
+} BulletPV;
+
 typedef struct CSWs {
+    double accelPV;
     int x;
     int y;
     int d;
+    int lastd;
     int iam;
     int life;
     int inertiaTimerIsRunning;
+    int lastActionTime;
     double inertiaDirections[4];
+    BulletPV bullet;
     SDL_Texture* texture;
+    
 //     void (*initCPU)(struct CSWs * csw, int x, int y);
 //     void (*initPLAYER)(struct CSWs * csw, int x, int y);
     void (*update)(struct CSWs * csw);

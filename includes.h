@@ -44,6 +44,8 @@ void graphics_EraseImg();               //	{ Стирает всё изобра�
 void graphics_FillImg();                //	{ Заливает всю картинку выбранным цветом}
 void graphics_Field();                  //  { Рисует поле для редактирования	}
 // void graphics_FillCell(int, int, );  // { Закрашивает клетку			}
+void graphics_PutPixel(int, int, SDL_Color);
+void graphics_PutPixels(SDL_Point*, SDL_Color, int);
 void graphics_ShowXY();                 // { Показывает текущие координаты курсора	}
 void graphics_ShowFPS(float);
 void graphics_Line(int, int, int, int, SDL_Color);
@@ -99,6 +101,8 @@ extern struct callbacks {
     void (*space_key)();
     void (*r_key)();
     void (*f_key)();
+    void (*a_key)();
+    void (*a_keyup)();
     void (*esc_key)();
     void (*f3_key)();
     void (*f2_key)();

@@ -15,7 +15,7 @@ bool graphics_LoadFromRenderedText(char*, SDL_Color);
 void graphics_TextFree();
 void graphics_OutTextXY(int, int, char*, SDL_Color);
 void graphics_PutPixel(int, int, SDL_Color);
-void graphics_PutPixels(SDL_Point*, SDL_Color, int);
+//void graphics_PutPixels(SDL_Point*, SDL_Color, int);
 void graphics_SetPalette();
 void graphics_Help();
 void graphics_SetColor(int);

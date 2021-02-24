@@ -14,6 +14,7 @@ void keyboard_KeyEcho(SDL_Event event) {
             case SDLK_DOWN:     keyboard_Callbacks.down_key(); break;
             case SDLK_PAGEUP:   keyboard_Callbacks.pgup_key(); break;
             case SDLK_PAGEDOWN: keyboard_Callbacks.pgdn_key(); break;
+            case SDLK_a:        keyboard_Callbacks.a_key(); break;
             case SDLK_r:        keyboard_Callbacks.r_key(); break;
             case SDLK_f:        keyboard_Callbacks.f_key(); break;
             case SDLK_ESCAPE:   keyboard_Callbacks.esc_key(); break;
@@ -33,6 +34,7 @@ void keyboard_KeyEcho(SDL_Event event) {
             case SDLK_RIGHT:    keyboard_Callbacks.right_keyup(); break;
             case SDLK_UP:       keyboard_Callbacks.up_keyup(); break;
             case SDLK_DOWN:     keyboard_Callbacks.down_keyup(); break;
+            case SDLK_a:        keyboard_Callbacks.a_keyup(); break;
             default:
                 break;
         }

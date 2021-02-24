@@ -7,8 +7,15 @@
 void csw_move(struct CSWs * csw, int d);
 void player_draw(struct CSWs * csw);
 void csw_inertia(struct CSWs * csw);
+CSW * csw_GetCSW(int x, int y);
+
+void bullet_draw(BulletPV * bullet);
+void bullet_fly(BulletPV * bullet);
+void bullet_init(BulletPV * bullet, int x, int y, int d, bool isFire);
 
 int *base_getVXY(int d);
+
+//SDL_Color graphics_editor_colors[COLORMAX];
 
 int getDirOpposites(int d) {
     int dirOpposites[4];
@@ -41,29 +48,34 @@ void player_setDirectionAndAddAccel(CSW * csw, int d, double accel) {
 
 void csw_setDirectionPV(CSW * csw, int d, double unused) {
     csw->d = d;
+    csw->accelPV = unused;
 }
 
-bool csw_CheckCSW(int x, int y) {
+CSW * csw_GetCSW(int x, int y) {
     int cnt = 0;
     while(cnt < 2) {
         if (cswArr[cnt]->x == x && cswArr[cnt]->y == y) {
-            return true;
+            return cswArr[cnt];
         }
         cnt++;
     }
-    return false;
+    return NULL;
 }
 
 void csw_updatePV(CSW * csw) {
-    printf("\ninside csw_updatePV!");
+    printf("\ncsw->life in update = %d", csw->life);
+
+    if (csw->bullet.isFire) {
+        bullet_fly(&csw->bullet);
+    }
     if (csw->life <= 0) {
         csw->life = 0;
     } else {
         //if (csw->iam == USER) {
-            printf("\niam=%d, d=%d", csw->iam, csw->d);
+            //printf("\niam=%d, d=%d", csw->iam, csw->d);
             int *nvxy = base_getVXY(csw->d);
-            int vx = nvxy[0];
-            int vy = nvxy[1];
+            int vx = nvxy[0] * csw->accelPV;
+            int vy = nvxy[1] * csw->accelPV;
             if ((csw->x + vx) > 20 || (csw->x + vx < 1)) {
                 vx = 0;
             }
@@ -71,7 +83,7 @@ void csw_updatePV(CSW * csw) {
                 vy = 0;
             }
             if(!(vx == 0 && vy == 0)) {
-                if (csw_CheckCSW(csw->x + vx, csw->y + vy) == true) {
+                if (csw_GetCSW(csw->x + vx, csw->y + vy) != NULL) {
                     vx = 0;
                     vy = 0;
                 }
@@ -83,12 +95,63 @@ void csw_updatePV(CSW * csw) {
     csw->draw(csw);
 }
 
-void csw_firePV(CSW * csw) {
-
+void csw_fire(CSW * csw) {
+    if (PASCAL_VERSION == 1) {
+        //printf("\ncsw->life = %d", csw->life);
+        if (csw->d != 5 && csw->life > 0 && csw->bullet.isFire == false) {
+            //printf("\nfire!");
+            bullet_init(&csw->bullet, csw->x, csw->y, csw->d, true);
+        }
+    }
 }
 
-void csw_fire(CSW * csw) {
+void bullet_init(BulletPV * bullet, int x, int y, int d, bool isFire) {
+    bullet->x = x;
+    bullet->y = y;
+    bullet->d = d;
+    bullet->isFire = isFire;
+}
 
+void bullet_fly(BulletPV * bullet) {
+    int vx;
+    int vy;
+    int vx1;
+    int vy1;
+
+    if (bullet->isFire == true) {
+        int *nvxy = base_getVXY(bullet->d);
+        int vx = nvxy[0];
+        int vy = nvxy[1];
+        bullet->x = bullet->x + vx;
+        bullet->y = bullet->y + vy;
+
+        bullet_draw(bullet);
+
+        if (bullet->parent == USER) {
+            printf("\nuuuu bullet fly!");
+            printf("\nuuuu bullet->d = %d", bullet->d);
+            printf("\nuuuu vx = %d vy = %d", vx, vy);
+            printf("\nuuuu bullet->x = %d bullet->y = %d", bullet->x, bullet->y);
+        }
+        
+        if ((bullet->x + vx) > 20 || (bullet->x + vx < 1)) {
+            vx = 0;
+            bullet->isFire = false;
+        }
+        if ((bullet->y + vy) > 20 || (bullet->y + vy < 1)) {
+            vy = 0;
+            bullet->isFire = false;
+        }
+        if(!(vx == 0 && vy == 0)) {
+            CSW * foundCSW = csw_GetCSW(bullet->x + vx, bullet->y + vy);
+            if (foundCSW != NULL && foundCSW->life > 0) {
+                vx = 0;
+                vy = 0;
+                foundCSW->life--;
+                bullet->isFire = false;
+            }
+        }
+    }
 }
 
 void initPLAYER(CSW * csw, int x, int y) {
@@ -102,8 +165,12 @@ void initPLAYER(CSW * csw, int x, int y) {
 
     csw->inertia = &csw_inertia;
     csw->draw = &player_draw;
+    csw->fire = &csw_fire;
     csw->move = &csw_move;
     csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
+
+    bullet_init(&csw->bullet, 0, 0, 5, false);
+    csw->bullet.parent = csw->iam;
     
     if (PASCAL_VERSION == 0) {
         csw->update = &player_update;
@@ -116,6 +183,7 @@ void initPLAYER(CSW * csw, int x, int y) {
 
 void initCPU(CSW * csw, int x, int y) {
     csw->iam = COMPUTER;
+    csw->lastActionTime = 0;
     csw->d = 5;
     csw->x = x;
     csw->y = y;
@@ -124,15 +192,18 @@ void initCPU(CSW * csw, int x, int y) {
     csw->texture = graphics_LoadFromPNG("images/csw-mt5.png");
     
     csw->draw = &csw_draw;
+    csw->fire = &csw_fire;
     // csw.setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
 
+    bullet_init(&csw->bullet, 0, 0, 5, false);
+    csw->bullet.parent = csw->iam;
+    
     if (PASCAL_VERSION == 0) {
         csw->update = &csw_update;
-        csw->fire = &csw_fire;
 //        csw->setDirectionAndAddAccel = &player_setDirectionAndAddAccel;
     } else {
         csw->update = &csw_updatePV;
-        csw->fire = &csw_firePV;
+        //csw->fire = &csw_firePV;
         csw->setDirectionAndAddAccel = &csw_setDirectionPV;
     }
     cswArr[1] = csw;
@@ -159,6 +230,15 @@ void csw_draw(CSW * csw) {
     } else {
         graphics_RenderLoadedTexture(csw->texture, 20 * csw->x + 20, 20 * csw->y + 20, 20, 20);
     }
+}
+
+void bullet_draw(BulletPV * bullet) {
+    SDL_Color color = { 255, 255, 255, 255 };
+    SDL_Point points[1] = {
+        {20 * bullet->x + 20, 20 * bullet->y + 20},     // {Vertical up}
+    };
+
+    graphics_PutPixels(points, color, 1);
 }
 
 void player_draw(CSW * csw) {

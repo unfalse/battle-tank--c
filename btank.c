@@ -47,6 +47,7 @@ int leftPressed = 0;
 int rightPressed = 0;
 int upPressed = 0;
 int downPressed = 0;
+int aPressed = 0;
 void left_key() {
     // player.x--;
     leftPressed = 1;
@@ -74,7 +75,6 @@ void up_keyup() {
     upPressed = 0;
 }
 
-
 void down_key() {
     downPressed = 1;
 }
@@ -85,6 +85,14 @@ void down_keyup() {
 
 void esc_key() {
     events_Quit();
+}
+
+void a_key() {
+    aPressed = 1;
+}
+
+void a_keyup() {
+    aPressed = 0;
 }
 
 void assembly_SetKeyboardCallbacks() {
@@ -99,6 +107,9 @@ void assembly_SetKeyboardCallbacks() {
 
     keyboard_Callbacks.down_key = &down_key;
     keyboard_Callbacks.down_keyup = &down_keyup;
+
+    keyboard_Callbacks.a_key = &a_key;
+    keyboard_Callbacks.a_keyup = &a_keyup;
     
     //    keyboard_Callbacks.space_key = &space_key;
     //keyboard_Callbacks.pgup_key = &pgup_key;
@@ -109,6 +120,9 @@ void assembly_SetKeyboardCallbacks() {
 
 void player_detectMovement() {
     double ACCEL = 0.3;
+    if (PASCAL_VERSION == 1) {
+        ACCEL = 1;
+    }
     if (leftPressed == 1) {
         // d=2
         // player.x--;
@@ -128,12 +142,15 @@ void player_detectMovement() {
         // d=1
         // player.y++;
         player.setDirectionAndAddAccel(&player, 1, ACCEL);
-    }   
+    }
 }
 
 void player_detectMovementPV() {
     if ((leftPressed + upPressed + rightPressed + downPressed) == 0) {
-        player.setDirectionAndAddAccel(&player, 5, 0);
+        player.setDirectionAndAddAccel(&player, player.d, 0);
+    }
+    if (aPressed == 1) {
+        player.fire(&player);
     }
     player_detectMovement();
 }
@@ -216,13 +233,22 @@ void assembly_UserMovePV() {
 
     printf("\nUserMovePV inside!");
     player.update(&player);
-
-    cpu.fire(&cpu);
     
     // cpu.d = myrandom(0, 3);
-    cpu.setDirectionAndAddAccel(&cpu, myrandom(0, 4), 0);
-    printf("\ncpu.d = %d", cpu.d);
-    cpu.update(&cpu);
+    int ticks = ltimer_GetTicks(&mainTimer);
+    // TODO: fix the use of timer to implement speed properly
+    if (ticks - cpu.lastActionTime >= 50) {
+        cpu.setDirectionAndAddAccel(&cpu, myrandom(0, 4), 1);
+        cpu.fire(&cpu);
+
+        //graphics_PutPixel(20 * 1 + 20, 20 * 1 + 20, graphics_editor_colors[14]);
+        //graphics_Aim(40, 40);
+        
+        printf("\ncpu.d = %d", cpu.d);
+        cpu.update(&cpu);
+        cpu.lastActionTime = ltimer_GetTicks(&mainTimer);
+    }
+    cpu.draw(&cpu);
 
     /*
     randomize;
